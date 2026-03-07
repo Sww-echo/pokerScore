@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PokerScore - 创建或加入房间</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#d4af35", // Gold accent
+                        "poker-green": "#1a472a", // Deep poker table green
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#0f1a14", // Very dark green-tinted black
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .poker-gradient {
+            background: radial-gradient(circle at center, #1a472a 0%, #0f1a14 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display">
+<!-- Header -->
+<header class="flex items-center px-4 py-6 justify-between border-b border-primary/10">
+<div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-center flex-1">扑克计分器</h1>
+<div class="size-10"></div> <!-- Placeholder for balance -->
+</header>
+<!-- Main Content -->
+<main class="flex-1 px-4 py-8 max-w-md mx-auto w-full space-y-12">
+<!-- Welcome Hero -->
+<section class="text-center space-y-2">
+<div class="inline-flex items-center justify-center p-4 bg-primary/10 rounded-full mb-4">
+<span class="material-symbols-outlined text-4xl text-primary">playing_cards</span>
+</div>
+<h2 class="text-3xl font-bold tracking-tight">准备开始？</h2>
+<p class="text-slate-500 dark:text-slate-400">选择创建一个新房间或加入现有的对局</p>
+</section>
+<!-- Create Room Section -->
+<section class="space-y-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary">add_circle</span>
+<h3 class="text-lg font-semibold">新建房间</h3>
+</div>
+<div class="bg-primary/5 border border-primary/20 p-6 rounded-xl space-y-4">
+<div class="space-y-2">
+<label class="text-sm font-medium text-slate-400 px-1">房间名称</label>
+<input class="w-full h-14 px-4 rounded-lg bg-background-dark border border-primary/30 focus:border-primary focus:ring-1 focus:ring-primary text-slate-100 placeholder:text-slate-600 transition-all" placeholder="例如：周五之夜, 德州时间" type="text"/>
+</div>
+<button class="w-full h-14 bg-primary hover:bg-primary/90 text-background-dark font-bold rounded-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
+<span>创建并进入</span>
+<span class="material-symbols-outlined">login</span>
+</button>
+</div>
+</section>
+<!-- Join Room Section -->
+<section class="space-y-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary">group</span>
+<h3 class="text-lg font-semibold">加入房间</h3>
+</div>
+<div class="bg-primary/5 border border-primary/20 p-6 rounded-xl space-y-4">
+<div class="space-y-2">
+<label class="text-sm font-medium text-slate-400 px-1">输入6位房间码</label>
+<div class="relative">
+<input class="w-full h-14 px-4 rounded-lg bg-background-dark border border-primary/30 focus:border-primary focus:ring-1 focus:ring-primary text-slate-100 placeholder:text-slate-600 tracking-[0.5em] text-center text-xl font-bold transition-all" maxlength="6" placeholder="000000" type="number"/>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 h-14 bg-slate-800 hover:bg-slate-700 text-primary border border-primary/40 font-bold rounded-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+<span>扫码进入</span>
+</button>
+<button class="flex-[1.5] h-14 bg-primary hover:bg-primary/90 text-background-dark font-bold rounded-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
+<span>加入房间</span>
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Quick Tips or Stats -->
+<div class="p-4 bg-poker-green/20 rounded-lg border border-poker-green/30 flex items-start gap-3">
+<span class="material-symbols-outlined text-primary mt-0.5">info</span>
+<p class="text-sm text-slate-400 leading-relaxed">
+<span class="text-primary font-semibold">提示：</span>房间有效期为24小时，结束后将自动封存记录。您可以从个人中心查看历史战绩。
+            </p>
+</div>
+</main>
+<!-- Bottom Nav Bar -->
+<nav class="sticky bottom-0 w-full border-t border-primary/10 bg-background-dark/80 backdrop-blur-md px-6 py-3">
+<div class="flex justify-between items-center max-w-md mx-auto">
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined font-variation-fill">home</span>
+<span class="text-[10px] font-medium">首页</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="text-[10px] font-medium">记录</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="text-[10px] font-medium">排名</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-medium">设置</span>
+</a>
+</div>
+</nav>
+<!-- Background Decorative Elements -->
+<div class="fixed top-0 left-0 w-full h-full -z-10 opacity-20 pointer-events-none overflow-hidden">
+<div class="absolute top-[-10%] right-[-10%] w-[60%] h-[40%] bg-primary/10 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[-10%] left-[-10%] w-[60%] h-[40%] bg-poker-green/30 blur-[120px] rounded-full"></div>
+</div>
+</body></html>

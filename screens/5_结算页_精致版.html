@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#d4af35",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#1a1812",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "Noto Sans SC", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .safe-area-pb {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .safe-area-pt {
+            padding-top: env(safe-area-inset-top);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between px-4 py-4 safe-area-pt sticky top-0 bg-background-dark/80 backdrop-blur-md z-10">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/50">
+<span class="material-symbols-outlined text-slate-100">close</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight">结算账单</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/50">
+<span class="material-symbols-outlined text-slate-100">share</span>
+</button>
+</header>
+<main class="flex-1 overflow-y-auto">
+<!-- Hero Section: Celebratory State -->
+<div class="px-4 py-6">
+<div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/20 to-transparent p-6 border border-primary/20">
+<div class="absolute top-0 right-0 p-4 opacity-20">
+<span class="material-symbols-outlined text-[120px] text-primary">emoji_events</span>
+</div>
+<div class="relative z-10">
+<p class="text-primary font-bold text-sm uppercase tracking-widest mb-2">Game Over</p>
+<h2 class="text-4xl font-display font-bold leading-tight">本局已结束</h2>
+<p class="text-slate-400 mt-2 text-sm">结束时间: 2024-05-20 22:45</p>
+</div>
+</div>
+</div>
+<!-- Hall of Fame / Leaderboard -->
+<section class="px-4 py-4">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary">military_tech</span>
+<h3 class="text-xl font-bold">Hall of Fame</h3>
+</div>
+<div class="grid grid-cols-2 gap-3 mb-6">
+<!-- Winner Card -->
+<div class="flex flex-col items-center justify-center p-4 rounded-xl border-2 border-primary bg-primary/10 relative overflow-hidden">
+<div class="absolute -top-1 -right-1 bg-primary text-background-dark px-2 py-0.5 rounded-bl-lg text-[10px] font-bold">MVP</div>
+<span class="text-3xl font-display font-bold text-primary mb-1">+1,240</span>
+<span class="text-sm font-medium text-slate-300">大赢家 · 查理</span>
+</div>
+<!-- 2nd Place -->
+<div class="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-700 bg-slate-800/30">
+<span class="text-2xl font-display font-bold text-slate-100 mb-1">+450</span>
+<span class="text-sm font-medium text-slate-400">二家 · 阿珍</span>
+</div>
+<!-- 3rd Place -->
+<div class="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-700 bg-slate-800/30">
+<span class="text-2xl font-display font-bold text-slate-400 mb-1">-320</span>
+<span class="text-sm font-medium text-slate-400">三家 · 强子</span>
+</div>
+<!-- 4th Place -->
+<div class="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-700 bg-slate-800/30">
+<span class="text-2xl font-display font-bold text-red-400 mb-1">-1,370</span>
+<span class="text-sm font-medium text-slate-400">四家 · 老王</span>
+</div>
+</div>
+</section>
+<!-- Transfer Paths -->
+<section class="px-4 py-4 mb-8">
+<div class="bg-slate-800/20 rounded-2xl border border-slate-800 p-5">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">payments</span>
+                        建议转账路径
+                    </h3>
+<span class="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">最优结算方案</span>
+</div>
+<div class="space-y-6">
+<!-- Path 1 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Avatar of player losing points" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCT13gc7LvjE0R18_WnyeZ_SzFZESCnDrsAVKv702YbRYqaLH8EBEYiKy4xuFQt_OkVMLPB-EY2xqMWFKV6e8IUJBWGMvSdzb5MfpoKS_RM7Za63dXG5MgWI0n7yoLLQfIbIn5_VG_Lww5GG0l_gv5n1S2JuFAOoixhMaP39V19vEEwsWbavfLOQ8IRMqDoFSQtjEPDn0KlkEzDqKY8KksfG4q0PqSUw9tqCIDbcDMwI1upyWtmfvFG_cgFx_44hK8yeptpy7yMMHU"/>
+</div>
+<div>
+<p class="text-sm font-bold">老王</p>
+<p class="text-[10px] text-slate-500">支付方</p>
+</div>
+</div>
+<div class="flex flex-col items-center flex-1 px-4">
+<div class="flex items-center text-primary mb-1">
+<span class="material-symbols-outlined text-xs">monetization_on</span>
+<span class="text-sm font-bold mx-1">1,240</span>
+</div>
+<div class="w-full h-[2px] bg-slate-700 relative">
+<div class="absolute right-0 -top-[5px] text-primary">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 text-right">
+<div>
+<p class="text-sm font-bold">查理</p>
+<p class="text-[10px] text-slate-500">接收方</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Avatar of winning player" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCT1xhM4dZwSSphnEd0TMVxED2ZtWXms_8YZeN0NB7Y8b6ikYdzityOY6URjPwFbppUqVM8CYDf2Um4sa-Mh-VqJB0IVxTMY0-NTBSq724qCCTiHR9yPQbsyCquGHzzyMwO9mUns0frEr6mb0pCNhxFuBQ94-MOCvT_YT2pK9wy9Yao-d-HUvSYOHmWvGwtsBxZeS5sQTllMhsvybRgNEJkgz3YQtMJsOWN6lDc5LNwRlXEEbDWkQ-CuoCskwOX3iClp_JViAGO4hs"/>
+</div>
+</div>
+</div>
+<!-- Path 2 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Avatar of player losing points" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6AOmn7po89gOmQWCTcpmmOA2ofEadBA3wNr3VIXvN7g-8P_EX5qXBvqFZZWkdi-zdQhpiGTbksCw1WVcM4cYZLdnVYQEhn9DDFz7JVNa1YMXBm1zMsAm2RaunRr3uNF7OHTyubkH8kmH5hX0nXUn7MH8CEx5w7_uES9cmeIhGKDwREX31_9TsR04Qs04o2OP3MqDiQduu-wFoa5B2s1mr7yJlS5Rq2cfcOaQtaYt9-3neOh9i_KZ0BDFjzGbKyjOxUz6AQkPRhr0"/>
+</div>
+<div>
+<p class="text-sm font-bold">老王</p>
+<p class="text-[10px] text-slate-500">支付方</p>
+</div>
+</div>
+<div class="flex flex-col items-center flex-1 px-4">
+<div class="flex items-center text-primary mb-1">
+<span class="material-symbols-outlined text-xs">monetization_on</span>
+<span class="text-sm font-bold mx-1">130</span>
+</div>
+<div class="w-full h-[2px] bg-slate-700 relative">
+<div class="absolute right-0 -top-[5px] text-primary">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 text-right">
+<div>
+<p class="text-sm font-bold">阿珍</p>
+<p class="text-[10px] text-slate-500">接收方</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Avatar of player receiving points" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgj_R10ozFAVjtqW2J-5X-NfA4A94hsbKiTM0kyl1ZkP5-sByvaBFH9kbatqeZ03JioL80cpoIXk5AGGbbey-IpGdRQaUSQV6lFIW6ETt5osWGIUr_xy1PFDER9omL5fUeHPDbIixJR_XjlxIs42cMa4Z9NlXRO6IXjBMqlyEiHN6hYVKF3CAitNWuFqfuvZmKGizyJxVDub6KWotMKOitYIVevcE3NiHWSdCWuDVv-mZeNEAdnBl-6cP6bJIRvLONZtcUyL6-Ll8"/>
+</div>
+</div>
+</div>
+<!-- Path 3 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Avatar of player losing points" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvDpaAWILG1rzSTFgjuKjx5ws96fa5tpR5GXpps8ypbAemZLRM6AdmZArcDj8KZr_zX8JkUVTgzNKtJIkv6yGIApkXFWu7gXRSzzzzx7hc7rRUIy717zO4kHfCBzRdEys4yk8bsdN8LwV91ngODkCVmEWTTIcT3JmpzMhoDP2ecpvD0Gs5XdAz3jK8AtgPfF5M3qh5CUKDj0zQ_2FOCfE7ZyzeIR-w8O-VAko54BlqyPKVDfrHzqSElDrKZS4B4CvcJfWJ5iNrTss"/>
+</div>
+<div>
+<p class="text-sm font-bold">强子</p>
+<p class="text-[10px] text-slate-500">支付方</p>
+</div>
+</div>
+<div class="flex flex-col items-center flex-1 px-4">
+<div class="flex items-center text-primary mb-1">
+<span class="material-symbols-outlined text-xs">monetization_on</span>
+<span class="text-sm font-bold mx-1">320</span>
+</div>
+<div class="w-full h-[2px] bg-slate-700 relative">
+<div class="absolute right-0 -top-[5px] text-primary">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 text-right">
+<div>
+<p class="text-sm font-bold">阿珍</p>
+<p class="text-[10px] text-slate-500">接收方</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Avatar of player receiving points" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAypc00jrGtFkyHXS_5dWgVtNyc3Z6Q7HVhgRbi4OLYzKFLEGdTCmRFovhqtW9suzt2iRMXWL5qqtSAPY71pjttvscU8RUzZLb5gGf0P2wgiK3xoEIvRzVdk15ChqnkqJghnoUl1fA7e6RiSxQI38p67oqiVf9p13DmSAG5qh5uJStbtJWwc_D92pPFccndnR2abbdZ_CfJwTpSs51A-SKInTEN4H-cmrVAxlhcHuSxkdgPM1OowTaf_K0NHlWlMSHluRSo8Z9u1h4"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Actions -->
+<footer class="p-4 bg-background-dark/95 border-t border-slate-800 safe-area-pb">
+<div class="flex flex-col gap-3">
+<button class="w-full py-4 bg-primary text-background-dark font-bold rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined">restart_alt</span>
+                开启新一局
+            </button>
+<button class="w-full py-4 bg-slate-800 text-slate-100 font-bold rounded-xl border border-slate-700 flex items-center justify-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined">meeting_room</span>
+                返回房间
+            </button>
+</div>
+</footer>
+</body></html>

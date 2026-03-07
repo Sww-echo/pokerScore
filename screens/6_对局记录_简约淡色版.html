@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f9d406",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#23200f",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<title>PokerScore - Game History</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-xl overflow-x-hidden">
+<!-- Header -->
+<header class="sticky top-0 z-10 flex items-center bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 pb-2 justify-between border-b border-slate-200 dark:border-slate-800">
+<div class="text-slate-900 dark:text-slate-100 flex size-10 shrink-0 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight flex-1 text-center">PokerScore</h2>
+<div class="flex w-10 items-center justify-end">
+<button class="flex size-10 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">search</span>
+</button>
+</div>
+</header>
+<!-- Tabs Navigation -->
+<nav class="bg-background-light dark:bg-background-dark pt-2">
+<div class="flex border-b border-slate-200 dark:border-slate-800 px-4 gap-8">
+<a class="flex flex-col items-center justify-center border-b-[3px] border-primary text-slate-900 dark:text-slate-100 pb-3 pt-4 transition-all" href="#">
+<p class="text-sm font-bold leading-normal">全部对局</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-slate-500 dark:text-slate-400 pb-3 pt-4 transition-all" href="#">
+<p class="text-sm font-bold leading-normal">比赛</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-slate-500 dark:text-slate-400 pb-3 pt-4 transition-all" href="#">
+<p class="text-sm font-bold leading-normal">现金局</p>
+</a>
+</div>
+</nav>
+<!-- Game History List -->
+<main class="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
+<!-- Game Card 1 -->
+<div class="group flex items-center justify-between gap-4 p-4 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-1 flex-1">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center justify-center bg-primary text-slate-900 text-[10px] font-bold px-1.5 py-0.5 rounded">WINNER</span>
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">Rank #1 • 1,250 pts</p>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal">Oct 24, 2023 • Diamond Club</p>
+</div>
+<div class="size-16 bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden shrink-0">
+<div class="w-full h-full bg-cover bg-center" data-alt="Classic poker chips and cards on table" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDNOqitHHzZ2SoypoLiKd1gMIX9RVcfSbm9SsZt0MdQSYE-xVL2e9QUaHniBKEco7xTXmSu7P0RYFSYUHncHvYF36fhU5CAJDma353TyXO-IESj71ZaMCuzNbwkmsYdY2J3mpzFUJII9Z2rEpb3o3wQba7eTbdPIM0NpYtAFFZZGTu0b3YMA3lP1pwuEXMrfmDXgFt2sxGh4dH975xy82XGNlsQ8lWDWcOI1UcnsbCcqH5Xz2mJ08CjFpIaLYzCjuNPiKWXjxYE_Aw')"></div>
+</div>
+</div>
+<!-- Game Card 2 -->
+<div class="group flex items-center justify-between gap-4 p-4 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-1 flex-1">
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">Rank #3 • 850 pts</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal">Oct 22, 2023 • High Stakes Room</p>
+</div>
+<div class="size-16 bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden shrink-0">
+<div class="w-full h-full bg-cover bg-center" data-alt="Billiard table and poker atmosphere background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBdnjB77swFY3MNmKjmV4TIA_1wHKAhl9SP9mmDoUCLNvzuYcbUtOYLAXidYYxRVftAnGLNUwI5m1QGXoixk1zymHjaWYtmhRMgAX9lf4PF-nK50A01pheojvaMkf9zhAusADtJr79JOhuEoAECSbOQDiRo-xOxJSgPWBeZIADPI12vma9A_fhVU_j_EsO5csiSWIn8Bbldvv4uWjtG2dcbTg_oqf7Ym8Iq1XqOoOICUvwusqqWr9YH34ti7gxMjO5Rd9923vUDBEI')"></div>
+</div>
+</div>
+<!-- Game Card 3 -->
+<div class="group flex items-center justify-between gap-4 p-4 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-1 flex-1">
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">Rank #2 • 980 pts</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal">Oct 20, 2023 • VIP Lounge</p>
+</div>
+<div class="size-16 bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden shrink-0">
+<div class="w-full h-full bg-cover bg-center" data-alt="Luxury casino interior with golden accents" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCjUahBIy2mqlxtsT_KM0b-5AywXBIWanKW3A9CDGRVRo4zAwoQADCXys9bXcy0buBkEIlsbMy8QpwqctTG-n3WoT5e6a6x4c1VGdhvjPXQETx6DyHVD0XJ1nL_3FEEenMQxOyL8p2sHpNGwYnbIyxIhlgJ03RVxWEUddlb3YtFjc-nFbz0FcnhfyVjFOlNQBa4ANN3WmXm3d8SM4WWFQu0o3ADIjXI9lbK0WxZTb2KIaUWa_ev7KwlMToQ0edUzgIHIr0iPD9J1Gw')"></div>
+</div>
+</div>
+<!-- Game Card 4 -->
+<div class="group flex items-center justify-between gap-4 p-4 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow opacity-75">
+<div class="flex flex-col gap-1 flex-1">
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">Rank #7 • 210 pts</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal">Oct 15, 2023 • Friday Night Poker</p>
+</div>
+<div class="size-16 bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden shrink-0">
+<div class="w-full h-full bg-cover bg-center" data-alt="Abstract poker game cards pattern" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB7Qbm02jZ-PMd7t0VSpFC3psb_RwRZfw6pNL9LaHUVU3WVuM2V5ya6JHa3B82MNYDzUlR3CJJm3WWoRezo2TSpjvF26LXE5oS2kjIhIK9-yAo0SYBb7aPTHofNkdja4XzcT0WOg-UofSwKEKgdurlTWs_yG0FFXp5Fnl3B7Att4Xl4fxBHzlCwZeSUt9bZP3p_kEEQI5Zhakao2OgIy3QJgv76beEv98wFJTO9YtesZnfn4LlCTAh1M2ogy1eFxfMXwDrPKh0qERQ')"></div>
+</div>
+</div>
+<!-- Game Card 5 -->
+<div class="group flex items-center justify-between gap-4 p-4 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-1 flex-1">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center justify-center bg-primary text-slate-900 text-[10px] font-bold px-1.5 py-0.5 rounded">WINNER</span>
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">Rank #1 • 2,400 pts</p>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal">Oct 12, 2023 • Grand Tournament</p>
+</div>
+<div class="size-16 bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden shrink-0">
+<div class="w-full h-full bg-cover bg-center" data-alt="Close up of poker cards and chips" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDC5FocdB1F_l9KOxEzLHyWuGype1cTPtYPTpfZeHvNULiF2o3MG2j6o8tCtBuBD_7xkcakmhyEUoqp4eTQUQ9MzqEjDyUKFWePRBLjb5VxbWlBkXvRm8usd-e1-eMsJ5xXslbb11Hoz_0f1P-nsNC1mf81Q7GnN3-Mjd1Yl1peYFRvBazLcsUK8edW2rysQdUt17nElhatHUMEbwyjAO0PckFOESN2IfoGN1TrD369zishAdEETHL0ivVxSwPOVHMQYsiby0fM_Ws')"></div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<footer class="fixed bottom-0 w-full max-w-md bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-4 pb-6 pt-2">
+<div class="flex justify-around items-end">
+<a class="flex flex-1 flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<p class="text-[10px] font-medium">首页</p>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">history</span>
+<p class="text-[10px] font-bold">对局</p>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<p class="text-[10px] font-medium">统计</p>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-[10px] font-medium">设置</p>
+</a>
+</div>
+</footer>
+</div>
+</body></html>

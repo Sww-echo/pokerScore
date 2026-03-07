@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PokerScore 转账</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f9d406",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#23200f",
+                        "charcoal": "#1a1a1a",
+                        "muted": "#8c855f"
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "Noto Sans SC", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .checkbox-custom:checked {
+            background-image: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27black%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e');
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-slate-200 font-display">
+<div class="relative mx-auto min-h-screen max-w-md bg-transparent flex flex-col justify-end">
+<div class="fixed inset-0 bg-charcoal/40 backdrop-blur-sm -z-10"></div>
+<div class="bg-background-light dark:bg-background-dark rounded-t-xl overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-bottom duration-300">
+<div class="flex h-1.5 w-full items-center justify-center pt-3 pb-2">
+<div class="h-1.5 w-12 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+</div>
+<div class="px-6 pt-4 pb-2">
+<h2 class="text-charcoal dark:text-slate-100 text-2xl font-bold tracking-tight">PokerScore 转账</h2>
+<p class="text-muted text-sm mt-1">从您的钱包转出积分</p>
+</div>
+<div class="px-6 py-4">
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+<img alt="Current user avatar" class="h-full w-full object-cover" data-alt="Profile photo of a modern man smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7BshC6Bw8js-I_74Mjf4xMB-DJov1JSE1An8k_cmuX_8Dux4I17oHNmfESaK9kI5ZeZvZLvwBImdLc6CSfmkdtdPG3tIUo6TFFcNX6KyK44c44c6sFALBoYGHBnTB02jBmnSh3aWLO_qRK-cnvJ1y2C07F0PjfWLYNcP1T1O_WIBoYeG84VdsF3Uwz2424tiKefWbqK1xUm78aiQx0r19fAgQr_SlDDzcqtvWylU0RoI-ouRKgDMMDE3Oyt0ybOPbHFcI4IQZ4X0"/>
+</div>
+<div>
+<p class="text-charcoal dark:text-slate-100 text-sm font-semibold">当前付款人</p>
+<p class="text-muted text-xs">主账户钱包</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-charcoal dark:text-slate-100 text-lg font-bold">¥12,500</p>
+<p class="text-muted text-[10px] uppercase tracking-wider font-medium">可用余额</p>
+</div>
+</div>
+</div>
+<div class="px-6 pt-2">
+<h3 class="text-charcoal dark:text-slate-100 text-base font-bold mb-3">选择收款人</h3>
+<div class="space-y-3 max-h-[320px] overflow-y-auto pr-1">
+<div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-50 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<input checked="" class="checkbox-custom h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary focus:ring-offset-0" type="checkbox"/>
+<div class="h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+<span class="text-sm font-bold text-charcoal dark:text-slate-100">ZS</span>
+</div>
+<span class="text-charcoal dark:text-slate-100 font-medium">张三</span>
+</div>
+<div class="flex items-center gap-2 bg-background-light dark:bg-slate-900 rounded-full px-2 py-1">
+<button class="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-charcoal dark:text-slate-100">
+<span class="material-symbols-outlined text-base">remove</span>
+</button>
+<input class="w-12 text-center bg-transparent border-none p-0 text-sm font-bold focus:ring-0 text-charcoal dark:text-slate-100" type="number" value="1000"/>
+<button class="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-charcoal dark:text-slate-100">
+<span class="material-symbols-outlined text-base">add</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-50 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<input class="checkbox-custom h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary focus:ring-offset-0" type="checkbox"/>
+<div class="h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+<span class="text-sm font-bold text-charcoal dark:text-slate-100">LS</span>
+</div>
+<span class="text-charcoal dark:text-slate-100 font-medium">李四</span>
+</div>
+<div class="flex items-center gap-2 bg-background-light dark:bg-slate-900 rounded-full px-2 py-1 opacity-50">
+<button class="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-charcoal dark:text-slate-100">
+<span class="material-symbols-outlined text-base">remove</span>
+</button>
+<input class="w-12 text-center bg-transparent border-none p-0 text-sm font-bold focus:ring-0 text-charcoal dark:text-slate-100" type="number" value="0"/>
+<button class="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-charcoal dark:text-slate-100">
+<span class="material-symbols-outlined text-base">add</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-50 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<input checked="" class="checkbox-custom h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary focus:ring-offset-0" type="checkbox"/>
+<div class="h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+<span class="text-sm font-bold text-charcoal dark:text-slate-100">WW</span>
+</div>
+<span class="text-charcoal dark:text-slate-100 font-medium">王五</span>
+</div>
+<div class="flex items-center gap-2 bg-background-light dark:bg-slate-900 rounded-full px-2 py-1">
+<button class="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-charcoal dark:text-slate-100">
+<span class="material-symbols-outlined text-base">remove</span>
+</button>
+<input class="w-12 text-center bg-transparent border-none p-0 text-sm font-bold focus:ring-0 text-charcoal dark:text-slate-100" type="number" value="2500"/>
+<button class="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-charcoal dark:text-slate-100">
+<span class="material-symbols-outlined text-base">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 mt-2">
+<div class="flex justify-between items-center mb-4 px-1">
+<span class="text-muted font-medium">合计转账金额</span>
+<span class="text-charcoal dark:text-slate-100 text-xl font-bold">¥3,500</span>
+</div>
+<button class="w-full bg-primary hover:brightness-95 text-charcoal font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all">
+<span>确认转账</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<div class="h-6"></div>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,31 @@
+{
+  "screenshot": {
+    "name": "projects/3044017134653589031/files/28f0bbe436b0461dacdc1c0b7214509d",
+    "downloadUrl": "https://lh3.googleusercontent.com/aida/AOfcidVVBYS0alBuqmDddQ-UM9X6c9pysr8FJITjEyZIbUwhIgoLu8KUSLYD1VGiQWksV59mQsQqQC9249AIhL9bTIRfEzov422ZjDdHei5ldsilM4v7aihqeHo0XrAHRlwiw3OLvir1WRPYhLaQvieC8mCvDe-v3HrRDVf33ajcTgQsMoNcHofFAL4s1JYkMkDOPaAHFsx113Vc60RV6Q7L2rar7-vx0h4MghCVmcq3o9RET3MN9HLm8T8mLGM"
+  },
+  "htmlCode": {
+    "name": "projects/3044017134653589031/files/c99b409837da4e858a3289a155d948cd",
+    "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzYxNWI1ZmNkYzUwOTQ1YWQ4MDhmMzJkZjY2NTZiODM4EgsSBxCWw7HnuBgYAZIBIwoKcHJvamVjdF9pZBIVQhMzMDQ0MDE3MTM0NjUzNTg5MDMx&filename=&opi=89354086",
+    "mimeType": "text/html"
+  },
+  "id": "018bd2b11cec410cbd8b73f04fff1a50",
+  "generatedBy": "HatterAgent",
+  "width": "780",
+  "height": "1768",
+  "title": "对局记录 - 中文完整版",
+  "prompt": "Translate ALL remaining English text to Chinese in the history records page.\n- 'Session Records' -\u003e '对局记录'.\n- 'All Sessions' -\u003e '全部对局'.\n- 'Tournaments' -\u003e '比赛'.\n- 'Cash Games' -\u003e '现金局'.\n- 'Recent History' -\u003e '最近记录'.\n- 'View Older' -\u003e '查看更早记录'.\n- Ensure dates and locations are in Chinese if applicable.",
+  "name": "projects/3044017134653589031/screens/018bd2b11cec410cbd8b73f04fff1a50",
+  "theme": {
+    "colorMode": "DARK",
+    "font": "PLUS_JAKARTA_SANS",
+    "roundness": "ROUND_TWELVE",
+    "customColor": "#d4af35",
+    "saturation": 2
+  },
+  "deviceType": "MOBILE",
+  "screenType": "DESIGN",
+  "screenMetadata": {
+    "agentType": "HATTER_AGENT",
+    "status": "COMPLETE"
+  }
+}

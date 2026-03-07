@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#f9d406",
+              "background-light": "#f8f8f5",
+              "background-dark": "#23200f",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<title>PokerScore - 结算中心</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex h-auto min-h-screen w-full max-w-md mx-auto flex-col overflow-x-hidden pb-24">
+<!-- Top Navigation -->
+<div class="flex items-center bg-white/80 dark:bg-background-dark/80 backdrop-blur-md sticky top-0 z-10 p-4 justify-between border-b border-slate-200/50 dark:border-slate-800/50">
+<div class="text-slate-900 dark:text-slate-100 flex size-10 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">结算 - PokerScore</h2>
+</div>
+<!-- Result Hero Section -->
+<div class="p-6 text-center">
+<h1 class="text-3xl font-extrabold tracking-tight mb-2">本局已结束</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm">2023年10月24日 · 标准模式 · 80手</p>
+</div>
+<!-- Players Grid -->
+<div class="px-4 mb-8">
+<h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4 px-2">本局战绩</h3>
+<div class="grid grid-cols-2 gap-4">
+<!-- Player A -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center">
+<div class="w-16 h-16 rounded-full border-2 border-primary mb-3 bg-cover bg-center" data-alt="Avatar of Player A wearing a cap" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB-l5dCyR7dD7xFw57bVJP37Lmjwfvt3KTFZOev-n5TKZtNpEy-eCTVi290_xeSl7mOTPpYJ4_T2RXf8na05qz9W2_y3ZKan_z6fGbndT9LOT5Eh5o2YPj0aTEhM3LRTPUapBqkXAtPjLXrCqx7BAssL79I-QS8GoCTFW-EHGnhMr4BI-U9jhfEk7c1yvAUUlZ7vPwEYAwHh1k6jAF3tbgYlSxpMYCpPpn9TQzKARh-X7FibI0w4MSqTsvjFT7tdjpGtD6bhNv1TDY')"></div>
+<p class="font-bold text-slate-800 dark:text-slate-200">李华 (Me)</p>
+<p class="text-emerald-500 font-bold text-lg">+1,200</p>
+</div>
+<!-- Player B -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center">
+<div class="w-16 h-16 rounded-full border-2 border-transparent mb-3 bg-cover bg-center" data-alt="Avatar of Player B with glasses" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDfUqdcBdvd-02R7Ch_QUhUuKgkLRuswuWzt18lIKcsYYxWjgICGE4LGXAUc5He0uynqWmdgnN4aLx_swsqXs21-A4LMQCpR0-y578jI3JwV07O4NTfmNpXilAoCxnYdxfo_D1Uj3pzVPODKNYEOaJvMkRy2NM-kgXctt-HI0UcjyA_50QkM1qUn05vc36gZApaAw63DjYislb_YuWfOSVP10tJ-5TUPgxCMUtDGPZZv60OvPtrjAlR4c6otHHEikB5YXesNRLfEis')"></div>
+<p class="font-bold text-slate-800 dark:text-slate-200">张伟</p>
+<p class="text-rose-500 font-bold text-lg">-800</p>
+</div>
+<!-- Player C -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center">
+<div class="w-16 h-16 rounded-full border-2 border-transparent mb-3 bg-cover bg-center" data-alt="Avatar of Player C with long hair" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAW6KNzHqwvBvmpCvrwX1ilpYxvGB1HJ8CQ60sSQhl8mRIQ4qnbAWboUCbGqou-2wkihsWY29Ew87qFrsZyPo4N8Nj4M_Tp9Egbp0nI4eHAjGAyoiA3aJu3gRMRMBWX2HYGGEha9bksNX6FAgqbPSlgfaWtWlXiKru_ujQvq3f6RzhDvzqv3Kh2VYlJifFWGBUddCzwB00sED9zgqpf-9ymz900o1iIJU6DBgfIRIDOFM3uPHhRPTw4HtXBZFeYOFZcQZcEtQ2rFII')"></div>
+<p class="font-bold text-slate-800 dark:text-slate-200">王芳</p>
+<p class="text-emerald-500 font-bold text-lg">+400</p>
+</div>
+<!-- Player D -->
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center">
+<div class="w-16 h-16 rounded-full border-2 border-transparent mb-3 bg-cover bg-center" data-alt="Avatar of Player D with a beard" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuALvMxeeUsc4V--z5CyGwPMPwxA1mKwvP8Fziu17oCjmtBxMIghX16CQMG9NK0fpJcb79SFNx9l6lDQwxy_3bmt7ozKq6rwe2aJ8xN4FyfXg0oAYAUE0ixNKzqYYCa3iKFZKCHWHF03k9SUt9anzFKa2c2g3U2Duh8X47YGASOVWNxaNU7KveOkmx1tbapGQ63blcElUa_97XjDXlp5hAGfLJiosZIqsgrX9ZIgvtVWiuzvyfJNwEoLIX98BKnhQdgYtRaQaeyFDFE')"></div>
+<p class="font-bold text-slate-800 dark:text-slate-200">赵敏</p>
+<p class="text-rose-500 font-bold text-lg">-800</p>
+</div>
+</div>
+</div>
+<!-- Transfer Paths (Suggested Path) -->
+<div class="px-4 mb-8">
+<div class="bg-primary/10 dark:bg-primary/5 rounded-xl p-5 border border-primary/20">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary font-bold">account_balance_wallet</span>
+<h3 class="text-base font-bold text-slate-800 dark:text-slate-200">建议转账路径</h3>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="text-sm font-medium">张伟</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">arrow_forward</span>
+<span class="text-sm font-medium">李华</span>
+</div>
+<span class="text-sm font-bold text-primary dark:text-primary">800 pts</span>
+</div>
+<div class="h-px bg-slate-200 dark:bg-slate-700"></div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="text-sm font-medium">赵敏</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">arrow_forward</span>
+<span class="text-sm font-medium">李华</span>
+</div>
+<span class="text-sm font-bold text-primary dark:text-primary">400 pts</span>
+</div>
+<div class="h-px bg-slate-200 dark:bg-slate-700"></div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="text-sm font-medium">赵敏</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">arrow_forward</span>
+<span class="text-sm font-medium">王芳</span>
+</div>
+<span class="text-sm font-bold text-primary dark:text-primary">400 pts</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Hall of Fame Section -->
+<div class="px-4 mb-8">
+<h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4 px-2">Hall of Fame</h3>
+<div class="space-y-3">
+<div class="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">military_tech</span>
+<div>
+<p class="text-sm font-bold">本局 MVP</p>
+<p class="text-xs text-slate-500">获胜积分最高</p>
+</div>
+</div>
+<span class="text-sm font-bold">李华</span>
+</div>
+<div class="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">local_fire_department</span>
+<div>
+<p class="text-sm font-bold">操作大师</p>
+<p class="text-xs text-slate-500">最高单手胜分</p>
+</div>
+</div>
+<span class="text-sm font-bold">王芳</span>
+</div>
+<div class="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">psychology</span>
+<div>
+<p class="text-sm font-bold">定力十足</p>
+<p class="text-xs text-slate-500">弃牌率最高</p>
+</div>
+</div>
+<span class="text-sm font-bold">赵敏</span>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="px-4 mt-auto mb-6 space-y-3">
+<button class="w-full bg-primary text-slate-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined">add_circle</span>
+                开启新一局
+            </button>
+<button class="w-full bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold py-4 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined">meeting_room</span>
+                返回房间
+            </button>
+</div>
+<!-- Bottom Navigation Bar -->
+<div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white dark:bg-background-dark border-t border-slate-200 dark:border-slate-800 px-6 py-3 flex justify-between items-center z-20">
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">首页</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined font-fill">bar_chart</span>
+<span class="text-[10px] font-medium">战绩</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-medium">设置</span>
+</a>
+</div>
+</div>
+</body></html>

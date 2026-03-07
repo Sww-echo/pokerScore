@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#d4af35",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#1a1812",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "system-ui", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .glass-panel {
+            background: rgba(40, 36, 24, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 53, 0.1);
+        }
+        .inner-shadow-premium {
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-x-hidden">
+<div class="relative flex min-h-screen w-full flex-col pb-32">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+<div class="flex items-center p-4 justify-between">
+<div class="flex items-center gap-3">
+<button class="flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
+</button>
+<div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">房间: PokerScore 888</h2>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-primary/80 text-xs font-bold tracking-widest uppercase">房间号: 729401</span>
+<button class="text-primary hover:text-primary/80 flex items-center">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+</button>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1 bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+<span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
+<span class="text-[10px] font-bold text-primary">进行中</span>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 px-4 py-6 space-y-6">
+<!-- Score Summary Cards -->
+<!-- Player Grid -->
+<div class="grid grid-cols-4 gap-4 py-2">
+<!-- Dealer / Host -->
+<div class="flex flex-col items-center gap-2 group">
+<div class="relative">
+<div class="size-16 rounded-full p-0.5 bg-gradient-to-tr from-primary via-yellow-200 to-primary">
+<div class="w-full h-full rounded-full overflow-hidden border-2 border-background-dark">
+<img class="w-full h-full object-cover" data-alt="Premium male avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdhQUC8xMwLcIZ-X3dFfNwNWj3S1eaaN8ueFi7BKt8CoxzhnkEA10L6JH7VONDD51bonIYp666OJG7WKsCvJhJwTPWmn8Maz8GyRXBzyCCZtESr-eqqpZ8RfPJ7SyRGP6h6cfJ4YJqzp-jM-TNij4WXWkHn47yxtZawvteZ9XyN3lT5VvrvIlFx9NFX3uo3mWuF155q0tfvAZKnrcYuAaYo42k28wnEhMCKbxFRzDhuhsr_og1FXw6oTNVBQg9B5Ad82KH03b8W0o"/>
+</div>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-primary text-background-dark text-[8px] font-black px-1.5 py-0.5 rounded-full border-2 border-background-dark">D</div>
+</div>
+<p class="text-primary text-xs font-bold truncate w-full text-center">李晓华</p>
+<p class="text-primary font-bold text-sm mt-1">+12,500</p></div>
+<!-- Player 2 -->
+<div class="flex flex-col items-center gap-2">
+<div class="size-16 rounded-full p-0.5 bg-slate-700">
+<div class="w-full h-full rounded-full overflow-hidden border-2 border-background-dark">
+<img class="w-full h-full object-cover" data-alt="Premium female avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgpX14coZpKlXgR-GRWC2wgmtp9-h87yaRpNPSpbZLRjcnY2lVQ0cgJZ3rAhBoFpTow6OsqfEbwEUxm8LhCwtsS5FDrJOcLmRTv04xgKsTSoQ7PQDlqMWaIbB5VbiqWcFc-QtufPZCBynkdGdd90kYG8T301Avo7SihQw_TW19PLXRc4B6lJgpoLTa2L5PVCSwE1xfw8LIXsu0y5H6iBWnLjULK8R2fFUlTNhqlnrMwyaJUe8QD7z8G9T9ee3sLX9UwkY3K0F2xZ0"/>
+</div>
+</div>
+<p class="text-slate-400 text-xs font-medium truncate w-full text-center">陈美美</p>
+<p class="text-rose-500 font-bold text-sm mt-1">-3,200</p></div>
+<!-- Player 3 -->
+<div class="flex flex-col items-center gap-2">
+<div class="size-16 rounded-full p-0.5 bg-slate-700">
+<div class="w-full h-full rounded-full overflow-hidden border-2 border-background-dark">
+<img class="w-full h-full object-cover" data-alt="Young male casual avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDriZDpmSv0HBs70DTzgquA6HqUh8bik1N29AIVN9F0rItaJkn3tRN0fnJBgH9fFS9xPfOCGUxp7m3cvgnHB9iOBQuw2VY51kDSzNRCjV4fnWV76IaRwWKTQCOsXN4X3AwsseIkf3ksp_QbGahcNenlPZqNbGLYNMQc0DdCfuK_aYMD_rCRtyVKJNm6MkRFp3zqfpRn7Blhit6wp9hxLcBcp1gYYW7dLvu1R_wR369rMIuvfUPxCgPTQRbTHDUiEuNSV1L-WpuWujE"/>
+</div>
+</div>
+<p class="text-slate-400 text-xs font-medium truncate w-full text-center">张小凡</p>
+<p class="text-slate-500 font-bold text-sm mt-1">0</p></div>
+<!-- Player 4 -->
+<div class="flex flex-col items-center gap-2">
+<div class="size-16 rounded-full p-0.5 bg-slate-700">
+<div class="w-full h-full rounded-full overflow-hidden border-2 border-background-dark flex items-center justify-center bg-slate-800">
+<span class="material-symbols-outlined text-slate-500">person_add</span>
+</div>
+</div>
+<p class="text-slate-500 text-xs font-medium truncate w-full text-center">待加入</p>
+<p class="text-slate-600 font-bold text-sm mt-1">--</p></div>
+</div>
+<!-- Activity Feed Section -->
+<div class="space-y-3">
+<div class="flex items-center justify-between px-1">
+<h3 class="text-sm font-bold text-slate-400 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">history</span>
+                        实时战报
+                    </h3>
+<span class="text-[10px] text-primary/60 font-medium">自动更新中</span>
+</div>
+<div class="glass-panel rounded-xl overflow-hidden h-48 flex flex-col">
+<div class="flex-1 overflow-y-auto p-3 space-y-3">
+<div class="flex items-start gap-3 animate-pulse-subtle">
+<div class="size-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-sm">trending_up</span>
+</div>
+<div class="flex flex-col">
+<p class="text-slate-200 text-xs leading-normal">
+<span class="font-bold text-primary">李晓华</span> 赢得了本局 
+                                    <span class="font-bold text-primary">+¥1,200.00</span>
+</p>
+<p class="text-slate-500 text-[10px]">1分钟前 · 第12局</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="size-8 rounded-full bg-rose-500/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-rose-500 text-sm">trending_down</span>
+</div>
+<div class="flex flex-col">
+<p class="text-slate-200 text-xs leading-normal">
+<span class="font-bold text-slate-100">陈美美</span> 支付给 李晓华 
+                                    <span class="font-bold text-rose-400">¥800.00</span>
+</p>
+<p class="text-slate-500 text-[10px]">3分钟前 · 转账</p>
+</div>
+</div>
+<div class="flex items-start gap-3 opacity-60">
+<div class="size-8 rounded-full bg-slate-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-slate-400 text-sm">group_add</span>
+</div>
+<div class="flex flex-col">
+<p class="text-slate-400 text-xs leading-normal">
+<span class="font-bold">张小凡</span> 加入了房间
+                                </p>
+<p class="text-slate-500 text-[10px]">10分钟前</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Actions -->
+<footer class="fixed bottom-0 left-0 right-0 p-4 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-xl border-t border-primary/10 safe-area-bottom">
+<div class="max-w-xl mx-auto flex gap-3">
+<button class="flex-1 flex items-center justify-center gap-2 h-14 rounded-xl bg-slate-800 border border-slate-700 text-slate-100 font-bold active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-xl">swap_horiz</span>
+<span>多人转账</span>
+</button>
+<button class="flex-[1.2] flex items-center justify-center gap-2 h-14 rounded-xl bg-primary text-background-dark font-black active:scale-[0.98] transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-xl">account_balance_wallet</span>
+<span>立即结算</span>
+</button>
+</div>
+</footer>
+</div>
+</body></html>

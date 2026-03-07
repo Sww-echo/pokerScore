@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PokerScore - History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#d4af35",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#121a14", // Dark green hue
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto w-full">
+<div class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-primary/10 cursor-pointer">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center">对局记录</h2>
+<div class="flex w-10 items-center justify-end">
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-primary">calendar_month</span>
+</button>
+</div>
+</div>
+<div class="px-4 max-w-md mx-auto w-full">
+<div class="flex gap-6 overflow-x-auto no-scrollbar">
+<a class="flex flex-col items-center justify-center border-b-2 border-primary text-primary pb-3 pt-2 shrink-0" href="#">
+<p class="text-sm font-bold">全部对局</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 dark:text-slate-400 pb-3 pt-2 shrink-0" href="#">
+<p class="text-sm font-medium">比赛</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 dark:text-slate-400 pb-3 pt-2 shrink-0" href="#">
+<p class="text-sm font-medium">现金局</p>
+</a>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-md mx-auto w-full p-4 space-y-4 overflow-y-auto">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-lg font-bold">最近记录</h3>
+<span class="text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 px-2 py-1 rounded">2023年10月</span>
+</div>
+<div class="group relative flex items-center gap-4 rounded-xl bg-white dark:bg-emerald-950/20 border border-primary/5 p-4 shadow-sm hover:border-primary/30 transition-all">
+<div class="flex flex-col gap-1 flex-1">
+<div class="flex items-center justify-between">
+<p class="text-base font-bold text-slate-900 dark:text-slate-100">The Bellagio Room</p>
+<p class="text-emerald-500 dark:text-emerald-400 font-bold text-sm">+1,240 pts</p>
+</div>
+<div class="flex items-center gap-2">
+<p class="text-slate-500 dark:text-slate-400 text-xs">10月21日 • 第12名</p>
+<span class="size-1 rounded-full bg-slate-400"></span>
+<p class="text-slate-500 dark:text-slate-400 text-xs">比赛</p>
+</div>
+</div>
+<div class="size-16 rounded-lg bg-cover bg-center" data-alt="Luxury poker table at Bellagio casino" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCaPOUc6_prWzMNwrNyGkWR__iFw0Url-lltQUD-ytq3qCJ39Uawp-0Nuxm6Os1Ky79glSrn7D5oMTuhFkS0-RMR90NljiuP79uiWpieFh45SV4K9OMz82Xr79YdGkWdHuxI2qLpnvHkAO9pWZdnDXLH94OZDwrVCvm_4mb-yLKHg7hyOaLTUQIYPAPYHTZwadltumfOzLZiVcb9rgYZ2KO7lyoAJh0eNQIYf_njD2ImDjKmljMXCQ9I8qeIr7NDUQLQMV9xtnafzA");'></div>
+</div>
+<div class="group relative flex items-center gap-4 rounded-xl bg-white dark:bg-emerald-950/20 border border-primary/5 p-4 shadow-sm hover:border-primary/30 transition-all">
+<div class="flex flex-col gap-1 flex-1">
+<div class="flex items-center justify-between">
+<p class="text-base font-bold text-slate-900 dark:text-slate-100">Wynn Poker Room</p>
+<p class="text-rose-500 dark:text-rose-400 font-bold text-sm">-450 pts</p>
+</div>
+<div class="flex items-center gap-2">
+<p class="text-slate-500 dark:text-slate-400 text-xs">10月18日 • 第3名</p>
+<span class="size-1 rounded-full bg-slate-400"></span>
+<p class="text-slate-500 dark:text-slate-400 text-xs">底池限额奥马哈</p>
+</div>
+</div>
+<div class="size-16 rounded-lg bg-cover bg-center" data-alt="Close up of poker chips stacked" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDty_lctNfY8Q0sMLesILweZS9i5TXvniNzzmuO24kjwrOiU8HqKt2Cbs2s7DyjfHxkTf60vVlki0o9kIQ8dJTGvIQ0qicnyYmKdcg4CDlav9ufPUqdlgCPOPoJ766wVdetnowQllM650TBCWK2-Z130De0r6QJTSYtRKAI8aYdHNlb9_OIqTFyfabz07QkEAq_sWbq4iZT-jmMimjGmcRy4RSpk6irViZjeb4koklRTPIMpj8Ml_JYFk-UmyJ_jqlxWAefxGwOwxA");'></div>
+</div>
+<div class="group relative flex items-center gap-4 rounded-xl bg-white dark:bg-emerald-950/20 border border-primary/5 p-4 shadow-sm hover:border-primary/30 transition-all">
+<div class="flex flex-col gap-1 flex-1">
+<div class="flex items-center justify-between">
+<p class="text-base font-bold text-slate-900 dark:text-slate-100">King's Resort</p>
+<p class="text-emerald-500 dark:text-emerald-400 font-bold text-sm">+890 pts</p>
+</div>
+<div class="flex items-center gap-2">
+<p class="text-slate-500 dark:text-slate-400 text-xs">10月15日 • 第1名</p>
+<span class="size-1 rounded-full bg-slate-400"></span>
+<p class="text-slate-500 dark:text-slate-400 text-xs">现金局</p>
+</div>
+</div>
+<div class="size-16 rounded-lg bg-cover bg-center" data-alt="Playing cards on a green felt table" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCE1oKWvaeWhQCDq_M8UTaRr1Z7USbO1zouGx02N4nci4q-9RSq2UNbg-cxHuZop-0Mz4W6OYCnfIWogEQ7bMfFx8p-iao-aRHNUD61RhHvf3IfcjIMvx3ASIApKyBNknsxhVXFix_DbM11TSoOpn96YNdryduCxsMQhLgtb1dKW5fBCspIexV4nzp-Ha3zZx931NULX4LEI5YFLSrUQFdwyCt6oVKa2vCglulMWbufc1qyyuHi7uNoxss5c0KbepahgO9rC3AC90M");'></div>
+</div>
+<div class="group relative flex items-center gap-4 rounded-xl bg-white dark:bg-emerald-950/20 border border-primary/5 p-4 shadow-sm hover:border-primary/30 transition-all">
+<div class="flex flex-col gap-1 flex-1">
+<div class="flex items-center justify-between">
+<p class="text-base font-bold text-slate-900 dark:text-slate-100">MGM Grand</p>
+<p class="text-emerald-500 dark:text-emerald-400 font-bold text-sm">+2,100 pts</p>
+</div>
+<div class="flex items-center gap-2">
+<p class="text-slate-500 dark:text-slate-400 text-xs">10月15日 • 第1名</p>
+<span class="size-1 rounded-full bg-slate-400"></span>
+<p class="text-slate-500 dark:text-slate-400 text-xs">现金局</p>
+</div>
+</div>
+<div class="size-16 rounded-lg bg-cover bg-center" data-alt="Vibrant casino interior lights" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC9yYlblh04ZrUPg8O8XYjS_uJ2OX9rdzygdLanHRW1oobY_EkaHW8kkcOCnr42sZwQ-wBvEqEemFYaHlX79IFBD_IXh7mBWjzhqESxo2NbEw41DHgyuJrCPK-3YUa_SdVrFhtC7S0yV3DiV7RSxWP4byx5lP0Rfahi8bM93kFWWqc_-xYeBzUSjk8_TrFnIqJY-RdDHH8Sq4khyAFWYEoWx3MeX-RcEr960YUSkK-MlVG5Qme2iolKUQZ04i31CUriqsNB-Ms_mxw");'></div>
+</div>
+<div class="text-center py-6">
+<button class="text-primary font-bold text-sm hover:underline">查看更早记录</button>
+</div>
+</main>
+<nav class="sticky bottom-0 bg-background-light dark:bg-emerald-950/40 backdrop-blur-lg border-t border-primary/20 pb-safe">
+<div class="flex gap-2 px-4 pb-3 pt-2 max-w-md mx-auto">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">首页</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">history</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">记录</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">trophy</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">排名</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-[10px] font-bold uppercase tracking-wider">设置</p>
+</a>
+</div>
+</nav>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+</body></html>

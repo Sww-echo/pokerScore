@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>PokerScore - 专业扑克计分助手</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#d4af35",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#062c1d", // Deep emerald green
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "system-ui", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .poker-table-texture {
+            background-color: #062c1d;
+            background-image: radial-gradient(circle at center, #0a4d33 0%, #062c1d 100%);
+            position: relative;
+        }
+        .poker-table-texture::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+        .glass-premium {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 53, 0.3);
+        }
+        .gold-gradient-text {
+            background: linear-gradient(to bottom, #f9e3a3 0%, #d4af35 50%, #a68a2a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-dark text-slate-100 antialiased selection:bg-primary/30">
+<div class="relative flex min-h-screen w-full flex-col poker-table-texture overflow-x-hidden pb-safe">
+<!-- Header -->
+<header class="flex items-center justify-between p-4 pt-safe">
+<div class="text-primary/80 flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined text-3xl">menu</span>
+</div>
+<div class="flex-1 text-center">
+<span class="text-xs font-bold tracking-[0.2em] uppercase text-primary/60">Professional Assistant</span>
+</div>
+<div class="flex w-12 items-center justify-end">
+<button class="flex items-center justify-center rounded-full size-10 bg-primary/10 border border-primary/20 text-primary">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex flex-1 flex-col items-center justify-center px-6 py-12">
+<!-- Logo Section -->
+<div class="mb-16 flex flex-col items-center">
+<div class="relative mb-6">
+<div class="absolute -inset-4 rounded-full bg-primary/10 blur-xl"></div>
+<div class="relative flex h-24 w-24 items-center justify-center rounded-2xl border-2 border-primary/40 bg-background-dark/80 shadow-[0_0_30px_rgba(212,175,53,0.2)]">
+<span class="material-symbols-outlined text-6xl gold-gradient-text">style</span>
+</div>
+</div>
+<h1 class="gold-gradient-text text-5xl font-extrabold tracking-tighter mb-2">PokerScore</h1>
+<div class="h-1 w-12 bg-primary/40 rounded-full mb-4"></div>
+<p class="text-slate-300/80 text-lg font-medium tracking-widest uppercase">尊享扑克计分</p>
+</div>
+<!-- Action Buttons -->
+<div class="w-full max-w-xs space-y-4">
+<button class="group relative w-full overflow-hidden rounded-xl bg-primary p-[1px]">
+<div class="relative flex h-14 items-center justify-center rounded-xl bg-gradient-to-b from-primary to-[#b3922d] transition-transform active:scale-95">
+<span class="text-[#062c1d] text-lg font-bold tracking-widest">创建房间</span>
+<div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+</button>
+<button class="group w-full glass-premium rounded-xl transition-all active:scale-95 hover:border-primary/60">
+<div class="flex h-14 items-center justify-center">
+<span class="text-primary text-lg font-bold tracking-widest">加入房间</span>
+</div>
+</button>
+</div>
+</main>
+<!-- Footer / Login Options -->
+<footer class="mt-auto px-6 pb-12">
+<div class="flex flex-col items-center space-y-6">
+<div class="flex items-center w-full gap-4">
+<div class="h-[1px] flex-1 bg-gradient-to-r from-transparent to-primary/20"></div>
+<span class="text-primary/40 text-xs font-bold tracking-widest uppercase">登录方式</span>
+<div class="h-[1px] flex-1 bg-gradient-to-l from-transparent to-primary/20"></div>
+</div>
+<div class="flex gap-8">
+<!-- WeChat Login -->
+<button class="flex flex-col items-center gap-2 group">
+<div class="flex size-14 items-center justify-center rounded-full border border-primary/20 bg-primary/5 transition-all group-hover:bg-primary/10 group-active:scale-90">
+<span class="material-symbols-outlined text-primary text-2xl">chat</span>
+</div>
+<span class="text-slate-400 text-xs font-medium">微信登录</span>
+</button>
+<!-- Guest Login -->
+<button class="flex flex-col items-center gap-2 group">
+<div class="flex size-14 items-center justify-center rounded-full border border-primary/20 bg-primary/5 transition-all group-hover:bg-primary/10 group-active:scale-90">
+<span class="material-symbols-outlined text-primary text-2xl">person_outline</span>
+</div>
+<span class="text-slate-400 text-xs font-medium">游客登录</span>
+</button>
+</div>
+</div>
+</footer>
+<!-- Decorative Elements (Table Edges) -->
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-b from-primary/20 to-transparent pointer-events-none"></div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-t from-primary/20 to-transparent pointer-events-none"></div>
+</div>
+</body></html>
