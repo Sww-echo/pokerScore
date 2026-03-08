@@ -7,7 +7,7 @@ import TransferPanel from "../components/TransferPanel.vue";
 import TransferTimeline from "../components/TransferTimeline.vue";
 import { useRoomStore } from "../stores/room";
 import { buildRoomInviteLink } from "../utils/roomInvite";
-import { shortCode } from "../utils/format";
+import { formatScore, shortCode } from "../utils/format";
 import type { TransferDraft, TransferMode } from "../types";
 
 const route = useRoute();
@@ -22,17 +22,33 @@ const inviteSheetOpen = ref(false);
 const inviteFeedback = ref("");
 const isSubmittingTransfer = ref(false);
 const isSettling = ref(false);
+const roomCardExpanded = ref(true);
 
 const roomCode = computed(() => shortCode(String(route.params.roomCode ?? "")));
 const room = computed(() => roomStore.room);
 const currentUser = computed(() => roomStore.currentUser);
 const playerCount = computed(() => room.value?.members.length ?? 0);
+const onlineCount = computed(
+  () => room.value?.members.filter((member) => member.isOnline).length ?? 0
+);
 const isSettled = computed(() => room.value?.status === "settled");
+const totalTransfers = computed(() => room.value?.transfers.length ?? 0);
+const roomStatusLabel = computed(() =>
+  room.value?.status === "active" ? "进行中牌局" : "已结算牌局"
+);
+const leadingMember = computed(() => {
+  const members = room.value?.members ?? [];
+  return [...members].sort((left, right) => right.score - left.score)[0] ?? null;
+});
+const currentUserScoreLabel = computed(() =>
+  currentUser.value ? formatScore(currentUser.value.score) : "--"
+);
 const inviteLink = computed(
-  () => roomStore.inviteLink || buildRoomInviteLink(roomCode.value),
+  () => roomStore.inviteLink || buildRoomInviteLink(roomCode.value)
 );
 const canNativeShare = computed(
-  () => typeof navigator !== "undefined" && typeof navigator.share === "function",
+  () =>
+    typeof navigator !== "undefined" && typeof navigator.share === "function"
 );
 
 let copiedTextTimer: number | null = null;
@@ -113,6 +129,10 @@ function openTransfer(mode: TransferMode, memberId: string | null = null) {
 
 function closeTransfer() {
   transferOpen.value = false;
+}
+
+function toggleRoomCard() {
+  roomCardExpanded.value = !roomCardExpanded.value;
 }
 
 async function submitTransfer(drafts: TransferDraft[], mode: TransferMode) {
@@ -234,7 +254,7 @@ async function settleRoom() {
   }
 
   const confirmed = window.confirm(
-    "确认关闭牌局并生成账单？此操作也可以撤回。",
+    "确认关闭牌局并生成账单？此操作也可以撤回。"
   );
   if (!confirmed) return;
 
@@ -257,171 +277,308 @@ async function settleRoom() {
 <template>
   <div
     v-if="room"
-    class="fixed inset-0 flex flex-col bg-background-light font-display text-slate-900 antialiased h-[100dvh]"
+    class="fixed inset-0 flex h-[100dvh] flex-col overflow-hidden bg-background-light font-display text-slate-900 antialiased"
   >
-    <!-- Header -->
-    <header
-      class="shrink-0 flex items-center justify-between p-4 pt-safe z-50 bg-background-light/90 backdrop-blur-md border-b border-slate-200"
-    >
-      <RouterLink
-        class="flex size-10 items-center justify-center rounded-full hover:bg-slate-100 transition-colors"
-        to="/"
-      >
-        <span class="material-symbols-outlined text-slate-900">arrow_back</span>
-      </RouterLink>
-      <div class="flex flex-col items-center">
-        <h1 class="text-slate-900 text-lg font-bold leading-tight">
-          {{ room.name }}
-        </h1>
-        <span
-          class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]"
-          >{{ room.status === "active" ? "Live Session" : "Settled" }}</span
-        >
-      </div>
+    <div class="pointer-events-none absolute inset-0 overflow-hidden">
       <div
-        class="flex size-10 items-center justify-center rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
-        @click="openInviteSheet"
+        class="absolute inset-x-0 top-0 h-64 bg-[linear-gradient(180deg,rgba(249,212,6,0.12)_0%,rgba(248,248,245,0)_100%)]"
+      ></div>
+      <div
+        class="absolute left-[-5rem] top-16 h-44 w-44 rounded-full bg-primary/15 blur-3xl"
+      ></div>
+      <div
+        class="absolute right-[-4rem] top-44 h-40 w-40 rounded-full bg-white/80 blur-3xl"
+      ></div>
+    </div>
+
+    <header
+      class="relative z-40 shrink-0 px-4 pb-3 pt-[calc(env(safe-area-inset-top)+12px)]"
+    >
+      <div
+        class="mx-auto flex w-full max-w-2xl items-center justify-between rounded-[1.75rem] border border-white/80 bg-white/85 px-3 py-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-xl"
       >
-        <span class="material-symbols-outlined text-slate-900">ios_share</span>
+        <RouterLink
+          class="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50/90 text-slate-700 transition-colors hover:bg-white"
+          to="/"
+        >
+          <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+        </RouterLink>
+
+        <div class="min-w-0 px-3 text-center">
+          <h1 class="truncate text-[1.05rem] font-black leading-tight text-slate-900">
+            {{ room.name }}
+          </h1>
+          <p class="mt-1 text-[11px] font-bold text-slate-500">
+            房间码 {{ room.code }}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-50/90 text-slate-700 transition-colors hover:bg-white"
+          @click="openInviteSheet"
+        >
+          <span class="material-symbols-outlined text-[20px]">ios_share</span>
+        </button>
       </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto overflow-x-hidden">
-      <!-- Room Info Card -->
-      <div class="p-4">
-        <div
-          class="relative overflow-hidden rounded-xl bg-white p-5 border border-slate-200 shadow-sm"
-          @click="copyRoomCode"
+    <main class="relative flex-1 overflow-x-hidden overflow-y-auto scrollbar-hide">
+      <div class="mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 pb-8 pt-1">
+        <section
+          class="relative overflow-hidden rounded-[2rem] border border-white/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.84)_100%)] shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition-all"
+          :class="roomCardExpanded ? 'p-5' : 'p-4'"
+          @click="toggleRoomCard"
         >
-          <div class="absolute -top-2 -right-4 p-4 opacity-[0.03]">
-            <span class="material-symbols-outlined text-[100px] text-slate-900"
-              >style</span
-            >
-          </div>
-          <div class="flex flex-col gap-1 relative z-10">
-            <p
-              class="text-primary text-xs font-black uppercase tracking-[0.15em] mb-1"
-            >
-              {{ copiedText || "Room Code" }}
-            </p>
-            <h2
-              class="text-slate-900 text-2xl font-black tracking-tight"
-              :class="{ 'text-primary scale-105 transition-all': copiedText }"
-            >
-              {{ room.code }}
-            </h2>
-            <div class="flex items-center gap-2 mt-1 relative z-20">
-              <span
-                class="size-1.5 rounded-full"
-                :class="
-                  room.status === 'active'
-                    ? 'bg-emerald-500 animate-pulse'
-                    : 'bg-rose-500'
-                "
-              ></span>
-              <span class="text-slate-500 text-xs font-bold"
-                >{{ playerCount }} Players Connected</span
-              >
-            </div>
-
-            <p class="mt-3 text-xs font-medium text-slate-500 relative z-20">
-              点击卡片复制房间码，右上角可分享邀请链接
-            </p>
-
-            <p
-              v-if="isSettled"
-              class="mt-3 text-xs font-bold text-rose-500 relative z-20"
-            >
-              当前牌局已结算，需重新开局后才能继续转分
-            </p>
-
-            <div
-              class="absolute bottom-1 right-2 w-14 h-14 bg-slate-50 rounded-full border border-slate-100 flex items-center justify-center cursor-pointer shadow-sm hover:bg-slate-100 transition active:scale-95 group"
-            >
-              <span
-                class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors"
-                >content_copy</span
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Players Grid -->
-      <div class="px-4 py-2">
-        <h3
-          class="text-slate-900 text-sm font-bold uppercase tracking-widest mb-4"
-        >
-          Players & Scores
-        </h3>
-        <div class="grid grid-cols-4 gap-x-2 gap-y-4">
-          <PlayerCard
-            v-for="member in room.members"
-            :key="member.id"
-            :member="member"
-            @transfer="openTransfer('single', $event)"
-          />
-
-          <!-- Add Player Placeholder -->
           <div
-            class="flex flex-col items-center gap-2 group cursor-pointer"
-            @click="openInviteSheet"
-          >
-            <div
-              class="size-16 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center group-hover:bg-slate-50 transition-colors"
-            >
-              <span class="material-symbols-outlined text-slate-400"
-                >share</span
-              >
+            class="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/15 blur-3xl"
+          ></div>
+          <div
+            class="absolute -bottom-8 left-0 h-24 w-24 rounded-full bg-white blur-2xl"
+          ></div>
+          <div class="relative z-10">
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <h2
+                  class="font-black tracking-[-0.06em] text-slate-900 transition-all"
+                  :class="[
+                    roomCardExpanded ? 'text-[2.5rem]' : 'text-[2.35rem]',
+                    { 'scale-[1.02] text-primary': copiedText },
+                  ]"
+                >
+                  {{ room.code }}
+                </h2>
+                <p
+                  v-if="roomCardExpanded"
+                  class="mt-2 text-sm font-medium leading-6 text-slate-500"
+                >
+                  右上角可直接分享邀请链接，牌友加入后会自动同步到当前牌桌。
+                </p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="flex size-14 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white/90 shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
+                  @click.stop="copyRoomCode"
+                >
+                  <span class="material-symbols-outlined text-[24px] text-slate-500">
+                    content_copy
+                  </span>
+                </button>
+                <div
+                  class="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white/80 text-slate-500 transition-transform"
+                  :class="{ 'rotate-180': roomCardExpanded }"
+                >
+                  <span class="material-symbols-outlined text-[20px]">
+                    keyboard_arrow_down
+                  </span>
+                </div>
+              </div>
             </div>
-            <div class="text-center">
+
+            <div v-if="roomCardExpanded">
+              <div class="mt-5 grid grid-cols-3 gap-3">
+                <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3">
+                  <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                    在线人数
+                  </p>
+                  <p class="mt-2 text-lg font-black text-slate-900">
+                    {{ onlineCount }}/{{ playerCount }}
+                  </p>
+                </div>
+                <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3">
+                  <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                    已记流水
+                  </p>
+                  <p class="mt-2 text-lg font-black text-slate-900">
+                    {{ totalTransfers }}
+                  </p>
+                </div>
+                <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3">
+                  <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                    我的分数
+                  </p>
+                  <p class="mt-2 text-lg font-black text-slate-900">
+                    {{ currentUserScoreLabel }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500">
+                <span
+                  class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/75 px-3 py-1.5"
+                >
+                  <span
+                    class="size-2 rounded-full"
+                    :class="room.status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'"
+                  ></span>
+                  {{ roomStatusLabel }}
+                </span>
+                <span
+                  v-if="leadingMember"
+                  class="inline-flex items-center rounded-full border border-slate-200 bg-white/75 px-3 py-1.5"
+                >
+                  领跑 {{ leadingMember.nickname }} ·
+                  <span class="ml-1 font-black text-slate-900">
+                    {{ formatScore(leadingMember.score) }}
+                  </span>
+                </span>
+              </div>
+
               <p
-                class="text-slate-400 text-xs font-bold uppercase tracking-wide"
+                v-if="isSettled"
+                class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600"
               >
-                邀请
+                当前牌局已结算，如需继续记分，请先查看账单或重新开局。
               </p>
-              <p class="text-slate-300 font-bold text-xs">分享</p>
+            </div>
+
+            <div
+              v-else
+              class="mt-3 flex flex-wrap items-center gap-2 text-xs font-bold text-slate-500"
+            >
+              <span
+                class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/75 px-3 py-1.5"
+              >
+                <span
+                  class="size-2 rounded-full"
+                  :class="room.status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'"
+                ></span>
+                {{ roomStatusLabel }}
+              </span>
+              <span
+                class="inline-flex items-center rounded-full border border-slate-200 bg-white/75 px-3 py-1.5"
+              >
+                在线 {{ onlineCount }}/{{ playerCount }}
+              </span>
+              <span
+                class="inline-flex items-center rounded-full border border-slate-200 bg-white/75 px-3 py-1.5"
+              >
+                流水 {{ totalTransfers }}
+              </span>
+              <span
+                class="inline-flex items-center rounded-full border border-slate-200 bg-white/75 px-3 py-1.5"
+              >
+                我的分数 {{ currentUserScoreLabel }}
+              </span>
+              <span
+                v-if="leadingMember"
+                class="inline-flex items-center rounded-full border border-slate-200 bg-white/75 px-3 py-1.5"
+              >
+                领跑 {{ leadingMember.nickname }} {{ formatScore(leadingMember.score) }}
+              </span>
+              <span
+                v-if="isSettled"
+                class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-rose-600"
+              >
+                当前牌局已结算
+              </span>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      <TransferTimeline :members="room.members" :transfers="room.transfers" />
+        <section
+          class="rounded-[1.75rem] border border-white/80 bg-white/80 p-4 shadow-[0_14px_32px_rgba(15,23,42,0.06)] backdrop-blur-sm"
+        >
+          <div class="mb-4 flex items-end justify-between gap-3">
+            <div>
+              <p class="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">
+                Table Crew
+              </p>
+              <h3 class="mt-1 text-lg font-black tracking-tight text-slate-900">
+                牌桌成员
+              </h3>
+            </div>
+            <span
+              class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-500"
+            >
+              左右滑动查看
+            </span>
+          </div>
+
+          <div class="-mx-1 overflow-x-auto px-1 pb-2 scrollbar-hide">
+            <div class="flex min-w-full gap-3">
+              <div
+                v-for="member in room.members"
+                :key="member.id"
+                class="w-[7.2rem] shrink-0"
+              >
+                <PlayerCard
+                  :member="member"
+                  @transfer="openTransfer('single', $event)"
+                />
+              </div>
+
+              <button
+                type="button"
+                class="flex w-[7.2rem] shrink-0 min-h-[8.75rem] flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50/80 p-3 text-center transition-colors hover:border-primary/30 hover:bg-white"
+                @click="openInviteSheet"
+              >
+                <div
+                  class="flex size-14 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm"
+                >
+                  <span class="material-symbols-outlined text-[24px]">share</span>
+                </div>
+                <div>
+                  <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                    邀请牌友
+                  </p>
+                  <p class="mt-1 text-xs font-medium text-slate-400">
+                    分享房间码或链接
+                  </p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <TransferTimeline
+          :members="room.members"
+          :transfers="room.transfers"
+          content-height-class="h-[26rem]"
+        />
+      </div>
     </main>
 
-    <!-- Fixed Bottom Bar -->
     <footer
-      class="shrink-0 p-4 bg-background-light/95 backdrop-blur-lg border-t border-slate-200 pb-safe z-40"
+      class="relative z-40 shrink-0 px-4 pb-[calc(env(safe-area-inset-bottom)+18px)] pt-3"
     >
-        <div class="flex gap-3 max-w-md mx-auto">
-          <button
-            @click="openTransfer('multi')"
-            :disabled="isSettled || isSubmittingTransfer || isSettling"
-            class="flex-[0.9] h-14 flex items-center justify-center gap-2 rounded-xl font-bold transition-transform shadow-md"
-            :class="
-              isSettled || isSubmittingTransfer || isSettling
-                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-95'
-            "
-          >
-            <span class="material-symbols-outlined text-xl">group</span>
-            <span>多人转分</span>
-          </button>
-          <button
-            @click="settleRoom"
-            :disabled="isSubmittingTransfer || isSettling"
-            class="flex-[1.1] h-14 flex items-center justify-center gap-2 bg-primary text-slate-900 rounded-xl font-black transition-transform active:scale-95 shadow-lg shadow-primary/20"
-            :class="{ 'opacity-60 pointer-events-none': isSubmittingTransfer || isSettling }"
-          >
-            <span class="material-symbols-outlined text-xl">
-              {{ isSettled ? "receipt_long" : "check_circle" }}
-            </span>
-            <span>{{
-              isSettling ? "处理中..." : isSettled ? "查看账单" : "生成账单"
-            }}</span>
-          </button>
+      <div
+        class="mx-auto max-w-2xl rounded-[2rem] border border-white/80 bg-white/88 p-3 shadow-[0_-10px_28px_rgba(15,23,42,0.05)] backdrop-blur-xl"
+      >
+        <div class="flex gap-3">
+        <button
+          @click="openTransfer('multi')"
+          :disabled="isSettled || isSubmittingTransfer || isSettling"
+          class="flex-[0.92] flex h-14 items-center justify-center gap-2 rounded-[1.35rem] font-bold shadow-[0_10px_20px_rgba(15,23,42,0.08)] transition-transform"
+          :class="
+            isSettled || isSubmittingTransfer || isSettling
+              ? 'cursor-not-allowed bg-slate-200 text-slate-400'
+              : 'bg-slate-900 text-white active:scale-[0.98] hover:bg-slate-800'
+          "
+        >
+          <span class="material-symbols-outlined text-xl">group</span>
+          <span>多人转分</span>
+        </button>
+        <button
+          @click="settleRoom"
+          :disabled="isSubmittingTransfer || isSettling"
+          class="flex-[1.08] flex h-14 items-center justify-center gap-2 rounded-[1.35rem] bg-primary font-black text-slate-900 shadow-[0_12px_24px_rgba(249,212,6,0.24)] transition-transform active:scale-[0.98]"
+          :class="{ 'pointer-events-none opacity-60': isSubmittingTransfer || isSettling }"
+        >
+          <span
+            class="material-symbols-outlined text-xl"
+          >{{ isSettled ? "receipt_long" : "check_circle" }}</span>
+          <span>
+            {{
+            isSettling ? "处理中..." : isSettled ? "查看账单" : "生成账单"
+            }}
+          </span>
+        </button>
         </div>
-      </footer>
+      </div>
+    </footer>
 
     <TransferPanel
       v-if="transferOpen"
@@ -450,29 +607,22 @@ async function settleRoom() {
 
   <main
     v-else
-    class="flex flex-col items-center justify-center px-6 text-center h-[100dvh] bg-background-light text-slate-900"
+    class="flex h-[100dvh] flex-col items-center justify-center bg-background-light px-6 pb-[calc(env(safe-area-inset-bottom)+24px)] pt-[calc(env(safe-area-inset-top)+24px)] text-center text-slate-900"
   >
     <div
-      class="w-full bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl max-w-sm"
+      class="w-full max-w-sm rounded-[2rem] border border-white/80 bg-white p-8 shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
     >
       <div
         class="size-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 shadow-inner"
       >
-        <span class="material-symbols-outlined text-slate-400 text-3xl"
-          >sentiment_dissatisfied</span
-        >
+        <span class="material-symbols-outlined text-slate-400 text-3xl">sentiment_dissatisfied</span>
       </div>
-      <h1 class="text-2xl font-black mb-3 text-slate-900 tracking-tight">
-        房间不存在
-      </h1>
-      <p class="text-slate-500 mb-8 font-medium text-sm">
-        未能加载数据，或者房间已被解散。
-      </p>
+      <h1 class="text-2xl font-black mb-3 text-slate-900 tracking-tight">房间不存在</h1>
+      <p class="text-slate-500 mb-8 font-medium text-sm">未能加载数据，或者房间已被解散。</p>
       <RouterLink
         class="w-full h-14 bg-primary text-slate-900 rounded-xl font-bold text-lg tracking-widest active:scale-95 transition-transform flex items-center justify-center shadow-lg shadow-primary/20"
         to="/"
-        >返回首页</RouterLink
-      >
+      >返回首页</RouterLink>
     </div>
   </main>
 </template>

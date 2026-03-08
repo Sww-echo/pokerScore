@@ -47,7 +47,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const appBasePath = normalizeBasePath(env.VITE_APP_BASE_PATH)
   const appBasePrefix = appBasePath === '/' ? '' : appBasePath.slice(0, -1)
-  const backendTarget = 'http://localhost:3001'
+  const backendTarget = env.VITE_DEV_PROXY_TARGET?.trim() || 'http://localhost:3001'
   const proxy: Record<string, ProxyOptions> = {
     '/api/v1': createProxyOptions(backendTarget),
     '/socket.io': createProxyOptions(backendTarget, { ws: true })
