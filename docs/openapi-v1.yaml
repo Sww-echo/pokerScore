@@ -1,0 +1,948 @@
+openapi: 3.0.3
+info:
+  title: PokerScore API
+  version: 1.0.0
+  description: |
+    PokerScore H5 后端接口文档。
+
+    目标场景：
+    - 线下打牌记分
+    - 房间内多人实时转分
+    - 结算账单生成
+    - 结算后重开新一局
+
+    说明：
+    - 本文档只描述 REST API
+    - 实时广播能力通过 Socket.IO 提供，不在本 OpenAPI 范围内
+    - 响应中的字段命名尽量对齐现有前端 `RoomState` / `RoomMember` / `TransferRecord`
+servers:
+  - url: http://localhost:3000
+    description: Local
+  - url: https://api.pokerscore.example.com
+    description: Production
+tags:
+  - name: Auth
+    description: 鉴权与身份初始化
+  - name: Rooms
+    description: 房间创建、加入、查询与邀请
+  - name: Transfers
+    description: 转分流水写入
+  - name: Settlements
+    description: 结算、查询与重开局
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/auth/guest:
+    post:
+      tags:
+        - Auth
+      summary: 游客登录
+      description: |
+        初始化游客身份并返回业务 Token。
+
+        说明：
+        - `nickname` 可不传，后端会自动生成默认昵称
+        - `deviceId` 建议前端传入，用于游客身份复用
+      operationId: authGuest
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuestAuthRequest'
+            examples:
+              default:
+                value:
+                  nickname: 牌友123
+                  deviceId: web-550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: 游客登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuestAuthResponseEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/v1/auth/wechat/login:
+    post:
+      tags:
+        - Auth
+      summary: 微信登录
+      description: |
+        使用微信 OAuth 返回的 `code` 换取业务 Token。
+
+        说明：
+        - V1 可先实现为占位接口
+        - 正式接入时返回结构应与游客登录保持一致
+      operationId: authWechatLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WechatLoginRequest'
+      responses:
+        '200':
+          description: 微信登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuestAuthResponseEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/rooms:
+    post:
+      tags:
+        - Rooms
+      summary: 创建房间
+      description: |
+        创建房间并自动加入当前用户。
+
+        行为约束：
+        - 若 `roomName` 为空，后端自动补全
+        - 若 `nickname` 为空，后端使用当前用户默认昵称或自动生成
+        - 创建成功后自动生成第一局 `roundNo = 1`
+      operationId: createRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoomRequest'
+            examples:
+              default:
+                value:
+                  roomName: 周末德州局
+                  nickname: 阿凯
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRoomResponseEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/rooms/{roomCode}:
+    get:
+      tags:
+        - Rooms
+      summary: 获取房间快照
+      description: |
+        获取房间全量快照。
+
+        适用场景：
+        - 页面首次进入
+        - 刷新恢复
+        - Socket 重连后补拉
+      operationId: getRoomSnapshot
+      parameters:
+        - $ref: '#/components/parameters/RoomCode'
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponseEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/RoomNotFound'
+  /api/v1/rooms/{roomCode}/join:
+    post:
+      tags:
+        - Rooms
+      summary: 加入房间
+      description: |
+        加入指定房间。
+
+        行为规则：
+        - 若当前用户已是房间成员，则视为重连并返回最新快照
+        - 若昵称与房间中已有昵称冲突，由服务端自动补唯一后缀
+      operationId: joinRoom
+      parameters:
+        - $ref: '#/components/parameters/RoomCode'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinRoomRequest'
+            examples:
+              default:
+                value:
+                  nickname: 新牌友
+      responses:
+        '200':
+          description: 加入成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinRoomResponseEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/RoomNotFound'
+        '409':
+          $ref: '#/components/responses/RoomUnavailable'
+  /api/v1/rooms/{roomCode}/invite:
+    get:
+      tags:
+        - Rooms
+      summary: 获取房间邀请信息
+      description: 获取房间码和邀请链接，用于复制、分享和二维码生成。
+      operationId: getRoomInvite
+      parameters:
+        - $ref: '#/components/parameters/RoomCode'
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteInfoResponseEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/RoomNotFound'
+  /api/v1/rooms/{roomCode}/transfers:
+    post:
+      tags:
+        - Transfers
+      summary: 提交转分
+      description: |
+        提交单人或多人转分。
+
+        行为规则：
+        - `items` 中每一项本质都会落一条独立流水
+        - 房间已结算时拒绝写入
+        - 同一个 `requestId` 必须幂等
+        - 后端必须在事务中同时完成：插入流水、更新成员分数、更新房间版本
+      operationId: createTransfers
+      parameters:
+        - $ref: '#/components/parameters/RoomCode'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransfersRequest'
+            examples:
+              multiTransfer:
+                value:
+                  requestId: req_20260308_001
+                  expectedVersion: 12
+                  items:
+                    - toMemberId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                      score: 20
+                    - toMemberId: 7d444840-9dc0-11d1-b245-5ffdce74fad2
+                      score: 15
+      responses:
+        '200':
+          description: 转分成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTransfersResponseEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/RoomNotFound'
+        '409':
+          $ref: '#/components/responses/TransferConflict'
+  /api/v1/rooms/{roomCode}/settlements:
+    post:
+      tags:
+        - Settlements
+      summary: 发起结算
+      description: |
+        对当前局生成结算快照。
+
+        行为规则：
+        - 任意房间成员都可发起
+        - 若当前局已结算，则直接返回已有快照
+        - 结算成功后当前局状态切为 `settled`
+      operationId: createSettlement
+      parameters:
+        - $ref: '#/components/parameters/RoomCode'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSettlementRequest'
+            examples:
+              default:
+                value:
+                  requestId: req_settlement_20260308_001
+                  expectedVersion: 17
+      responses:
+        '200':
+          description: 结算成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettlementResponseEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/RoomNotFound'
+        '409':
+          $ref: '#/components/responses/SettlementConflict'
+  /api/v1/rooms/{roomCode}/settlements/current:
+    get:
+      tags:
+        - Settlements
+      summary: 获取当前局结算快照
+      description: 获取当前局已生成的结算快照。
+      operationId: getCurrentSettlement
+      parameters:
+        - $ref: '#/components/parameters/RoomCode'
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettlementResponseEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/SettlementNotFound'
+  /api/v1/rooms/{roomCode}/reopen:
+    post:
+      tags:
+        - Settlements
+      summary: 重开新一局
+      description: |
+        在当前局已结算的前提下，开启下一局。
+
+        行为规则：
+        - 新一局会保留房间成员
+        - 新一局成员分数重置为 0
+        - 新一局转分流水从空开始累计
+      operationId: reopenRoom
+      parameters:
+        - $ref: '#/components/parameters/RoomCode'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReopenRoomRequest'
+            examples:
+              default:
+                value:
+                  requestId: req_reopen_20260308_001
+                  expectedVersion: 18
+      responses:
+        '200':
+          description: 重开成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponseEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/RoomNotFound'
+        '409':
+          $ref: '#/components/responses/ReopenConflict'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    RoomCode:
+      name: roomCode
+      in: path
+      required: true
+      description: 房间码，仅支持 4 到 8 位大写字母或数字
+      schema:
+        type: string
+        pattern: '^[A-Z0-9]{4,8}$'
+        example: 826531
+  responses:
+    BadRequest:
+      description: 参数校验失败
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEnvelope'
+          example:
+            code: 4000001
+            message: 参数校验失败
+            data: null
+    Unauthorized:
+      description: 未登录或 Token 无效
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEnvelope'
+          example:
+            code: 4010001
+            message: 未登录或登录已过期
+            data: null
+    Forbidden:
+      description: 非房间成员，无权访问
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEnvelope'
+          example:
+            code: 4031001
+            message: 当前用户不是该房间成员
+            data: null
+    RoomNotFound:
+      description: 房间不存在
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEnvelope'
+          example:
+            code: 4041001
+            message: 房间不存在
+            data: null
+    RoomUnavailable:
+      description: 房间不可加入
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEnvelope'
+          example:
+            code: 4091001
+            message: 房间当前不可加入
+            data: null
+    TransferConflict:
+      description: 转分冲突
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEnvelope'
+          examples:
+            settled:
+              value:
+                code: 4092001
+                message: 当前牌局已结算，禁止继续转分
+                data: null
+            versionMismatch:
+              value:
+                code: 4092002
+                message: 房间版本已变化，请刷新后重试
+                data: null
+    SettlementConflict:
+      description: 结算冲突
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEnvelope'
+          example:
+            code: 4093001
+            message: 当前牌局状态不允许结算
+            data: null
+    SettlementNotFound:
+      description: 当前局尚未结算
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEnvelope'
+          example:
+            code: 4043001
+            message: 当前局尚未生成结算账单
+            data: null
+    ReopenConflict:
+      description: 重开冲突
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseEnvelope'
+          example:
+            code: 4094001
+            message: 当前牌局尚未结算，不能直接重开
+            data: null
+  schemas:
+    ErrorResponseEnvelope:
+      type: object
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          nullable: true
+        traceId:
+          type: string
+          description: 服务端链路追踪 ID
+          example: trace_20260308_0001
+    SuccessEnvelopeBase:
+      type: object
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          type: integer
+          enum:
+            - 0
+        message:
+          type: string
+          example: ok
+        data:
+          type: object
+    GuestAuthRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+          maxLength: 12
+          description: 游客昵称，可为空
+          example: 牌友123
+        deviceId:
+          type: string
+          maxLength: 64
+          description: 设备唯一标识，建议前端传入
+          example: web-550e8400-e29b-41d4-a716-446655440000
+    WechatLoginRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          description: 微信 OAuth code
+        inviterRoomCode:
+          type: string
+          pattern: '^[A-Z0-9]{4,8}$'
+          description: 可选，若从邀请链接中进入可带上房间码
+    CreateRoomRequest:
+      type: object
+      properties:
+        roomName:
+          type: string
+          maxLength: 18
+          description: 房间名称，可为空，后端自动补全
+          example: 周末德州局
+        nickname:
+          type: string
+          maxLength: 12
+          description: 当前用户在本房间展示昵称，可为空
+          example: 阿凯
+    JoinRoomRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+          maxLength: 12
+          description: 当前用户在本房间展示昵称，可为空
+          example: 新牌友
+    CreateTransfersRequest:
+      type: object
+      required:
+        - requestId
+        - items
+      properties:
+        requestId:
+          type: string
+          maxLength: 64
+          description: 客户端幂等请求 ID
+          example: req_20260308_001
+        expectedVersion:
+          type: integer
+          format: int64
+          description: 可选，房间乐观锁版本
+          example: 12
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/TransferDraft'
+    CreateSettlementRequest:
+      type: object
+      required:
+        - requestId
+      properties:
+        requestId:
+          type: string
+          maxLength: 64
+          example: req_settlement_20260308_001
+        expectedVersion:
+          type: integer
+          format: int64
+          example: 17
+    ReopenRoomRequest:
+      type: object
+      required:
+        - requestId
+      properties:
+        requestId:
+          type: string
+          maxLength: 64
+          example: req_reopen_20260308_001
+        expectedVersion:
+          type: integer
+          format: int64
+          example: 18
+    AuthUser:
+      type: object
+      required:
+        - id
+        - nickname
+        - authMode
+        - accent
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        nickname:
+          type: string
+          example: 牌友123
+        authMode:
+          type: string
+          enum:
+            - guest
+            - wechat
+        accent:
+          type: string
+          example: sunset
+        avatarUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: https://cdn.example.com/avatar/u_1.png
+    RoomMember:
+      type: object
+      required:
+        - id
+        - nickname
+        - authMode
+        - accent
+        - seatLabel
+        - score
+        - isOnline
+        - isCurrentUser
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        nickname:
+          type: string
+          example: 阿凯
+        authMode:
+          type: string
+          enum:
+            - guest
+            - wechat
+        accent:
+          type: string
+          example: jade
+        avatarUrl:
+          type: string
+          format: uri
+          nullable: true
+        seatLabel:
+          type: string
+          example: 东位
+        score:
+          type: integer
+          format: int32
+          example: 40
+        isOnline:
+          type: boolean
+          example: true
+        isCurrentUser:
+          type: boolean
+          example: true
+    TransferDraft:
+      type: object
+      required:
+        - toMemberId
+        - score
+      properties:
+        toMemberId:
+          type: string
+          format: uuid
+          example: 7d444840-9dc0-11d1-b245-5ffdce74fad2
+        score:
+          type: integer
+          format: int32
+          minimum: 1
+          example: 20
+    TransferRecord:
+      type: object
+      required:
+        - id
+        - roomCode
+        - fromMemberId
+        - toMemberId
+        - score
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+        roomCode:
+          type: string
+          pattern: '^[A-Z0-9]{4,8}$'
+          example: 826531
+        fromMemberId:
+          type: string
+          format: uuid
+        toMemberId:
+          type: string
+          format: uuid
+        score:
+          type: integer
+          format: int32
+          minimum: 1
+          example: 20
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-03-08T12:30:00.000Z'
+    SettlementSuggestion:
+      type: object
+      required:
+        - fromMemberId
+        - toMemberId
+        - amount
+      properties:
+        fromMemberId:
+          type: string
+          format: uuid
+        toMemberId:
+          type: string
+          format: uuid
+        amount:
+          type: integer
+          format: int32
+          minimum: 1
+          example: 40
+    SettlementSnapshot:
+      type: object
+      required:
+        - settledAt
+        - ranking
+        - suggestions
+      properties:
+        settledAt:
+          type: string
+          format: date-time
+          example: '2026-03-08T13:05:00.000Z'
+        ranking:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomMember'
+        suggestions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SettlementSuggestion'
+    RoomSnapshot:
+      type: object
+      required:
+        - code
+        - name
+        - status
+        - updatedAt
+        - version
+        - roundNo
+        - members
+        - transfers
+        - settlement
+      properties:
+        code:
+          type: string
+          pattern: '^[A-Z0-9]{4,8}$'
+          example: 826531
+        name:
+          type: string
+          example: 周末德州局
+        status:
+          type: string
+          enum:
+            - active
+            - settled
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2026-03-08T12:35:00.000Z'
+        version:
+          type: integer
+          format: int64
+          example: 12
+        roundNo:
+          type: integer
+          format: int32
+          minimum: 1
+          example: 1
+        currentUserMemberId:
+          type: string
+          format: uuid
+          nullable: true
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomMember'
+        transfers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransferRecord'
+        settlement:
+          allOf:
+            - $ref: '#/components/schemas/SettlementSnapshot'
+          nullable: true
+    GuestAuthResponseEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelopeBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              required:
+                - user
+                - token
+              properties:
+                user:
+                  $ref: '#/components/schemas/AuthUser'
+                token:
+                  type: string
+                  example: jwt-access-token
+                refreshToken:
+                  type: string
+                  example: jwt-refresh-token
+    CreateRoomResponseEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelopeBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              required:
+                - roomCode
+                - room
+              properties:
+                roomCode:
+                  type: string
+                  pattern: '^[A-Z0-9]{4,8}$'
+                  example: 826531
+                room:
+                  $ref: '#/components/schemas/RoomSnapshot'
+    JoinRoomResponseEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelopeBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              required:
+                - roomCode
+                - room
+              properties:
+                roomCode:
+                  type: string
+                  pattern: '^[A-Z0-9]{4,8}$'
+                  example: 826531
+                room:
+                  $ref: '#/components/schemas/RoomSnapshot'
+    RoomResponseEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelopeBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              required:
+                - room
+              properties:
+                room:
+                  $ref: '#/components/schemas/RoomSnapshot'
+    InviteInfoResponseEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelopeBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              required:
+                - roomCode
+                - inviteLink
+              properties:
+                roomCode:
+                  type: string
+                  pattern: '^[A-Z0-9]{4,8}$'
+                  example: 826531
+                inviteLink:
+                  type: string
+                  format: uri
+                  example: https://h5.pokerscore.example.com/room/826531
+    CreateTransfersResponseEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelopeBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              required:
+                - room
+                - createdTransfers
+              properties:
+                room:
+                  $ref: '#/components/schemas/RoomSnapshot'
+                createdTransfers:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/TransferRecord'
+    SettlementResponseEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelopeBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              required:
+                - room
+                - settlement
+              properties:
+                room:
+                  $ref: '#/components/schemas/RoomSnapshot'
+                settlement:
+                  $ref: '#/components/schemas/SettlementSnapshot'

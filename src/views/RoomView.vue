@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import InviteRoomSheet from "../components/InviteRoomSheet.vue";
 import PlayerCard from "../components/PlayerCard.vue";
 import TransferPanel from "../components/TransferPanel.vue";
 import TransferTimeline from "../components/TransferTimeline.vue";
 import { useRoomStore } from "../stores/room";
+import { buildRoomInviteLink } from "../utils/roomInvite";
 import { shortCode } from "../utils/format";
 import type { TransferDraft, TransferMode } from "../types";
 
@@ -16,22 +18,87 @@ const transferOpen = ref(false);
 const transferMode = ref<TransferMode>("multi");
 const activeRecipientId = ref<string | null>(null);
 const copiedText = ref("");
+const inviteSheetOpen = ref(false);
+const inviteFeedback = ref("");
+const isSubmittingTransfer = ref(false);
+const isSettling = ref(false);
 
 const roomCode = computed(() => shortCode(String(route.params.roomCode ?? "")));
 const room = computed(() => roomStore.room);
 const currentUser = computed(() => roomStore.currentUser);
 const playerCount = computed(() => room.value?.members.length ?? 0);
 const isSettled = computed(() => room.value?.status === "settled");
+const inviteLink = computed(
+  () => roomStore.inviteLink || buildRoomInviteLink(roomCode.value),
+);
+const canNativeShare = computed(
+  () => typeof navigator !== "undefined" && typeof navigator.share === "function",
+);
+
+let copiedTextTimer: number | null = null;
+let inviteFeedbackTimer: number | null = null;
+let roomRefreshTimer: number | null = null;
 
 onMounted(() => {
-  if (!room.value || room.value.code !== roomCode.value) {
-    roomStore.joinRoom({
-      nickname: roomStore.profile?.nickname ?? "新牌友",
-      authMode: roomStore.profile?.authMode ?? "guest",
-      roomCode: roomCode.value,
-    });
-  }
+  void loadRoomPage();
+  roomRefreshTimer = window.setInterval(() => {
+    void syncRoomSilently();
+  }, 15000);
 });
+
+onBeforeUnmount(() => {
+  if (copiedTextTimer !== null) {
+    window.clearTimeout(copiedTextTimer);
+  }
+
+  if (inviteFeedbackTimer !== null) {
+    window.clearTimeout(inviteFeedbackTimer);
+  }
+
+  if (roomRefreshTimer !== null) {
+    window.clearInterval(roomRefreshTimer);
+  }
+
+  roomStore.disconnectRoomRealtime(roomCode.value);
+});
+
+async function loadRoomPage() {
+  try {
+    if (!room.value || room.value.code !== roomCode.value) {
+      await roomStore.joinRoom({
+        nickname: roomStore.profile?.nickname ?? "新牌友",
+        authMode: roomStore.profile?.authMode ?? "guest",
+        roomCode: roomCode.value,
+      });
+    } else {
+      await roomStore.fetchRoom(roomCode.value);
+    }
+
+    if (roomStore.room?.status === "settled") {
+      await roomStore.fetchCurrentSettlement(roomCode.value).catch(() => null);
+    }
+    await roomStore.refreshInviteLink(roomCode.value).catch(() => "");
+    await roomStore.connectRoomRealtime(roomCode.value).catch(() => null);
+  } catch {
+    await router.replace({ name: "home" });
+  }
+}
+
+async function syncRoomSilently() {
+  if (!roomCode.value) {
+    return;
+  }
+
+  try {
+    await roomStore.fetchRoom(roomCode.value);
+
+    if (roomStore.room?.status === "settled") {
+      await roomStore.fetchCurrentSettlement(roomCode.value).catch(() => null);
+    }
+  } catch {
+    // 定时补拉失败时保持静默，避免打断当前操作。
+  }
+}
 
 function openTransfer(mode: TransferMode, memberId: string | null = null) {
   if (isSettled.value) {
@@ -48,23 +115,116 @@ function closeTransfer() {
   transferOpen.value = false;
 }
 
-function submitTransfer(drafts: TransferDraft[], mode: TransferMode) {
-  const submitted = roomStore.transferScores(drafts, mode);
+async function submitTransfer(drafts: TransferDraft[], mode: TransferMode) {
+  if (isSubmittingTransfer.value) return;
 
-  if (submitted) {
-    transferOpen.value = false;
+  isSubmittingTransfer.value = true;
+
+  try {
+    const submitted = await roomStore.transferScores(drafts, mode);
+
+    if (submitted) {
+      transferOpen.value = false;
+    }
+  } catch (error) {
+    window.alert(error instanceof Error ? error.message : "转分失败");
+  } finally {
+    isSubmittingTransfer.value = false;
   }
 }
 
 async function copyRoomCode() {
-  await navigator.clipboard.writeText(roomCode.value);
+  const copied = await writeClipboard(roomCode.value);
+
+  if (!copied) {
+    window.alert("当前浏览器不支持复制，请手动记录房间码。");
+    return;
+  }
+
   copiedText.value = "已复制房间码";
-  window.setTimeout(() => {
+  setInviteFeedback("房间码已复制，可直接发给牌友");
+
+  if (copiedTextTimer !== null) {
+    window.clearTimeout(copiedTextTimer);
+  }
+
+  copiedTextTimer = window.setTimeout(() => {
     copiedText.value = "";
   }, 1800);
 }
 
-function settleRoom() {
+function openInviteSheet() {
+  inviteSheetOpen.value = true;
+}
+
+function closeInviteSheet() {
+  inviteSheetOpen.value = false;
+}
+
+function setInviteFeedback(message: string) {
+  inviteFeedback.value = message;
+
+  if (inviteFeedbackTimer !== null) {
+    window.clearTimeout(inviteFeedbackTimer);
+  }
+
+  inviteFeedbackTimer = window.setTimeout(() => {
+    inviteFeedback.value = "";
+  }, 2200);
+}
+
+async function writeClipboard(value: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return true;
+  }
+
+  const input = document.createElement("textarea");
+  input.value = value;
+  input.setAttribute("readonly", "true");
+  input.style.position = "fixed";
+  input.style.opacity = "0";
+  document.body.appendChild(input);
+  input.select();
+
+  const copied = document.execCommand("copy");
+  document.body.removeChild(input);
+
+  return copied;
+}
+
+async function copyInviteLink() {
+  const copied = await writeClipboard(inviteLink.value);
+
+  if (!copied) {
+    window.alert("当前浏览器不支持复制，请手动复制邀请链接。");
+    return;
+  }
+
+  setInviteFeedback("邀请链接已复制，可直接发送给牌友");
+}
+
+async function shareInviteLink() {
+  if (!canNativeShare.value) {
+    setInviteFeedback("当前浏览器暂不支持系统分享，可改用复制链接");
+    return;
+  }
+
+  try {
+    await navigator.share({
+      title: room.value?.name ?? "PokerScore 牌局",
+      text: `加入牌局「${room.value?.name ?? roomCode.value}」`,
+      url: inviteLink.value,
+    });
+    setInviteFeedback("邀请链接已调起系统分享");
+  } catch {
+    // 用户取消分享时保持静默。
+  }
+}
+
+async function settleRoom() {
+  if (isSettling.value) return;
+
   if (isSettled.value) {
     void router.push({
       name: "settlement",
@@ -77,11 +237,20 @@ function settleRoom() {
     "确认关闭牌局并生成账单？此操作也可以撤回。",
   );
   if (!confirmed) return;
-  roomStore.settleRoom();
-  void router.push({
-    name: "settlement",
-    params: { roomCode: roomCode.value },
-  });
+
+  isSettling.value = true;
+
+  try {
+    await roomStore.settleRoom();
+    await router.push({
+      name: "settlement",
+      params: { roomCode: roomCode.value },
+    });
+  } catch (error) {
+    window.alert(error instanceof Error ? error.message : "生成账单失败");
+  } finally {
+    isSettling.value = false;
+  }
 }
 </script>
 
@@ -111,9 +280,9 @@ function settleRoom() {
       </div>
       <div
         class="flex size-10 items-center justify-center rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
-        @click="copyRoomCode"
+        @click="openInviteSheet"
       >
-        <span class="material-symbols-outlined text-slate-900">info</span>
+        <span class="material-symbols-outlined text-slate-900">ios_share</span>
       </div>
     </header>
 
@@ -155,6 +324,10 @@ function settleRoom() {
               >
             </div>
 
+            <p class="mt-3 text-xs font-medium text-slate-500 relative z-20">
+              点击卡片复制房间码，右上角可分享邀请链接
+            </p>
+
             <p
               v-if="isSettled"
               class="mt-3 text-xs font-bold text-rose-500 relative z-20"
@@ -192,22 +365,22 @@ function settleRoom() {
           <!-- Add Player Placeholder -->
           <div
             class="flex flex-col items-center gap-2 group cursor-pointer"
-            @click="copyRoomCode"
+            @click="openInviteSheet"
           >
             <div
               class="size-16 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center group-hover:bg-slate-50 transition-colors"
             >
               <span class="material-symbols-outlined text-slate-400"
-                >person_add</span
+                >share</span
               >
             </div>
             <div class="text-center">
               <p
                 class="text-slate-400 text-xs font-bold uppercase tracking-wide"
               >
-                Invite
+                邀请
               </p>
-              <p class="text-slate-300 font-bold text-xs">--</p>
+              <p class="text-slate-300 font-bold text-xs">分享</p>
             </div>
           </div>
         </div>
@@ -223,10 +396,10 @@ function settleRoom() {
         <div class="flex gap-3 max-w-md mx-auto">
           <button
             @click="openTransfer('multi')"
-            :disabled="isSettled"
+            :disabled="isSettled || isSubmittingTransfer || isSettling"
             class="flex-[0.9] h-14 flex items-center justify-center gap-2 rounded-xl font-bold transition-transform shadow-md"
             :class="
-              isSettled
+              isSettled || isSubmittingTransfer || isSettling
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                 : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-95'
             "
@@ -236,12 +409,16 @@ function settleRoom() {
           </button>
           <button
             @click="settleRoom"
+            :disabled="isSubmittingTransfer || isSettling"
             class="flex-[1.1] h-14 flex items-center justify-center gap-2 bg-primary text-slate-900 rounded-xl font-black transition-transform active:scale-95 shadow-lg shadow-primary/20"
+            :class="{ 'opacity-60 pointer-events-none': isSubmittingTransfer || isSettling }"
           >
             <span class="material-symbols-outlined text-xl">
               {{ isSettled ? "receipt_long" : "check_circle" }}
             </span>
-            <span>{{ isSettled ? "查看账单" : "生成账单" }}</span>
+            <span>{{
+              isSettling ? "处理中..." : isSettled ? "查看账单" : "生成账单"
+            }}</span>
           </button>
         </div>
       </footer>
@@ -255,6 +432,19 @@ function settleRoom() {
       :initial-recipient-id="activeRecipientId"
       @close="closeTransfer"
       @submit="submitTransfer"
+    />
+
+    <InviteRoomSheet
+      :open="inviteSheetOpen"
+      :room-code="room.code"
+      :room-name="room.name"
+      :invite-link="inviteLink"
+      :feedback-text="inviteFeedback"
+      :can-native-share="canNativeShare"
+      @close="closeInviteSheet"
+      @copy-code="copyRoomCode"
+      @copy-link="copyInviteLink"
+      @share="shareInviteLink"
     />
   </div>
 

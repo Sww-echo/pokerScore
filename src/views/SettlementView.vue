@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onBeforeUnmount, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useRoomStore } from "../stores/room";
 import { formatDateTime, formatScore } from "../utils/format";
@@ -11,23 +11,55 @@ const roomStore = useRoomStore();
 
 const room = computed(() => roomStore.room);
 const snapshot = computed(() => room.value?.settlement ?? null);
+const isReopening = computed(() => roomStore.syncing);
 
 onMounted(() => {
-  if (!room.value || room.value.code !== String(route.params.roomCode)) {
-    void router.replace({ name: "home" });
-  }
+  void loadSettlementPage();
+});
+
+onBeforeUnmount(() => {
+  roomStore.disconnectRoomRealtime(String(route.params.roomCode ?? ""));
 });
 
 function resolveMember(memberId: string): RoomMember | undefined {
   return room.value?.members.find((member) => member.id === memberId);
 }
 
-function reopenRoom() {
-  roomStore.reopenRoom();
-  void router.push({
-    name: "room",
-    params: { roomCode: room.value?.code ?? "" },
-  });
+async function loadSettlementPage() {
+  const targetRoomCode = String(route.params.roomCode ?? "");
+
+  try {
+    if (!room.value || room.value.code !== targetRoomCode) {
+      await roomStore.joinRoom({
+        nickname: roomStore.profile?.nickname ?? "新牌友",
+        authMode: roomStore.profile?.authMode ?? "guest",
+        roomCode: targetRoomCode,
+      });
+    } else {
+      await roomStore.fetchRoom(targetRoomCode);
+    }
+
+    await roomStore.connectRoomRealtime(targetRoomCode).catch(() => null);
+  } catch {
+    await router.replace({ name: "home" });
+    return;
+  }
+
+  await roomStore.fetchCurrentSettlement(targetRoomCode).catch(() => null);
+}
+
+async function reopenRoom() {
+  if (isReopening.value) return;
+
+  try {
+    await roomStore.reopenRoom();
+    await router.push({
+      name: "room",
+      params: { roomCode: room.value?.code ?? "" },
+    });
+  } catch (error) {
+    window.alert(error instanceof Error ? error.message : "重开失败");
+  }
 }
 
 function backToHome() {
@@ -272,10 +304,12 @@ function getGradient(id: string) {
       <div class="flex flex-col gap-3 max-w-md mx-auto">
         <button
           @click="reopenRoom"
+          :disabled="isReopening"
           class="w-full h-14 bg-primary text-slate-900 font-bold text-sm tracking-widest rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-md hover:bg-[#ebd074]"
+          :class="{ 'opacity-60 pointer-events-none': isReopening }"
         >
           <span class="material-symbols-outlined text-[18px]">restart_alt</span>
-          重开当前局
+          {{ isReopening ? "处理中..." : "重开当前局" }}
         </button>
         <button
           @click="backToHome"

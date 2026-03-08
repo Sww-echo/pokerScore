@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useRoomStore } from "../stores/room";
-import { formatTime, formatScore } from "../utils/format";
+import { formatTime, formatScore, shortCode } from "../utils/format";
 import type { RoomMember, TransferRecord } from "../types";
 
 const route = useRoute();
@@ -10,21 +10,38 @@ const router = useRouter();
 const roomStore = useRoomStore();
 
 const activeTab = ref<"all" | "in" | "out">("all");
-const roomCode = computed(() => route.params.roomCode as string);
+const roomCode = computed(() => shortCode(String(route.params.roomCode ?? "")));
 
 onMounted(() => {
-  if (!roomStore.room || roomStore.room.code !== roomCode.value) {
-    if (roomCode.value) {
-      roomStore.joinRoom({
-        nickname: roomStore.profile?.nickname ?? "Guest",
+  void loadHistoryPage();
+});
+
+onBeforeUnmount(() => {
+  roomStore.disconnectRoomRealtime(roomCode.value);
+});
+
+async function loadHistoryPage() {
+  if (!roomCode.value) {
+    await router.replace({ name: "home" });
+    return;
+  }
+
+  try {
+    if (!roomStore.room || roomStore.room.code !== roomCode.value) {
+      await roomStore.joinRoom({
+        nickname: roomStore.profile?.nickname ?? "新牌友",
         authMode: roomStore.profile?.authMode ?? "guest",
         roomCode: roomCode.value,
       });
     } else {
-      router.replace({ name: "home" });
+      await roomStore.fetchRoom(roomCode.value);
     }
+
+    await roomStore.connectRoomRealtime(roomCode.value).catch(() => null);
+  } catch {
+    await router.replace({ name: "home" });
   }
-});
+}
 
 const room = computed(() => roomStore.room);
 const currentUser = computed(() => roomStore.currentUser);

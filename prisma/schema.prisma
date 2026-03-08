@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AuthType {
+  guest
+  wechat
+
+  @@map("auth_type_enum")
+}
+
+enum UserStatus {
+  active
+  disabled
+
+  @@map("user_status_enum")
+}
+
+enum RoomStatus {
+  active
+  settled
+  closed
+
+  @@map("room_status_enum")
+}
+
+enum RoundStatus {
+  active
+  settled
+
+  @@map("round_status_enum")
+}
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  authType     AuthType   @map("auth_type")
+  nickname     String     @db.VarChar(32)
+  accent       String     @default("sunset") @db.VarChar(32)
+  avatarUrl    String?    @map("avatar_url") @db.VarChar(255)
+  wechatOpenId String?    @unique(map: "uidx_app_user_wechat_openid") @map("wechat_openid") @db.VarChar(64)
+  deviceId     String?    @map("device_id") @db.VarChar(64)
+  status       UserStatus @default(active)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  ownedRooms   Room[]     @relation("RoomOwner")
+  roomMembers  RoomMember[]
+
+  @@index([authType], map: "idx_app_user_auth_type")
+  @@index([deviceId], map: "idx_app_user_device_id")
+  @@map("app_user")
+}
+
+model Room {
+  id                String               @id @default(uuid()) @db.Uuid
+  code              String               @unique(map: "uidx_room_code") @db.VarChar(8)
+  name              String               @db.VarChar(64)
+  ownerUserId       String               @map("owner_user_id") @db.Uuid
+  status            RoomStatus           @default(active)
+  currentRoundNo    Int                  @default(1) @map("current_round_no")
+  version           BigInt               @default(1) @db.BigInt
+  lastSettledAt     DateTime?            @map("last_settled_at") @db.Timestamptz(3)
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  ownerUser         User                 @relation("RoomOwner", fields: [ownerUserId], references: [id])
+  members           RoomMember[]
+  rounds            RoomRound[]
+  transferBatches   TransferBatch[]
+  transfers         TransferRecord[]
+  settlements       SettlementSnapshot[]
+  events            RoomEvent[]
+
+  @@index([ownerUserId], map: "idx_room_owner_user_id")
+  @@index([status], map: "idx_room_status")
+  @@map("room")
+}
+
+model RoomMember {
+  id                   String               @id @default(uuid()) @db.Uuid
+  roomId               String               @map("room_id") @db.Uuid
+  userId               String               @map("user_id") @db.Uuid
+  nickname             String               @db.VarChar(32)
+  accent               String               @default("sunset") @db.VarChar(32)
+  avatarUrl            String?              @map("avatar_url") @db.VarChar(255)
+  seatLabel            String?              @map("seat_label") @db.VarChar(16)
+  score                Int                  @default(0)
+  isOnline             Boolean              @default(true) @map("is_online")
+  joinedAt             DateTime             @default(now()) @map("joined_at") @db.Timestamptz(3)
+  lastActiveAt         DateTime             @default(now()) @map("last_active_at") @db.Timestamptz(3)
+  leftAt               DateTime?            @map("left_at") @db.Timestamptz(3)
+
+  room                 Room                 @relation(fields: [roomId], references: [id])
+  user                 User                 @relation(fields: [userId], references: [id])
+  outgoingTransfers    TransferRecord[]     @relation("TransferFromMember")
+  incomingTransfers    TransferRecord[]     @relation("TransferToMember")
+  operatedBatches      TransferBatch[]      @relation("TransferBatchOperator")
+  settledRounds        RoomRound[]          @relation("RoomRoundSettledByMember")
+  settlementSnapshots  SettlementSnapshot[] @relation("SettlementSnapshotSettledByMember")
+  events               RoomEvent[]          @relation("RoomEventOperator")
+
+  @@unique([roomId, userId], map: "uidx_room_member_room_user")
+  @@index([roomId, isOnline], map: "idx_room_member_room_online")
+  @@index([roomId, joinedAt], map: "idx_room_member_room_joined_at")
+  @@map("room_member")
+}
+
+model RoomRound {
+  id                 String              @id @default(uuid()) @db.Uuid
+  roomId             String              @map("room_id") @db.Uuid
+  roundNo            Int                 @map("round_no")
+  status             RoundStatus         @default(active)
+  startedAt          DateTime            @default(now()) @map("started_at") @db.Timestamptz(3)
+  settledAt          DateTime?           @map("settled_at") @db.Timestamptz(3)
+  settledByMemberId  String?             @map("settled_by_member_id") @db.Uuid
+  openRequestId      String?             @unique(map: "uidx_room_round_open_request_id") @map("open_request_id") @db.VarChar(64)
+  version            BigInt              @default(1) @db.BigInt
+
+  room               Room                @relation(fields: [roomId], references: [id])
+  settledByMember    RoomMember?         @relation("RoomRoundSettledByMember", fields: [settledByMemberId], references: [id])
+  transferBatches    TransferBatch[]
+  transfers          TransferRecord[]
+  settlementSnapshot SettlementSnapshot?
+  events             RoomEvent[]
+
+  @@unique([roomId, roundNo], map: "uidx_room_round_room_round_no")
+  @@index([roomId, status], map: "idx_room_round_room_status")
+  @@map("room_round")
+}
+
+model TransferBatch {
+  id               String           @id @default(uuid()) @db.Uuid
+  roomId           String           @map("room_id") @db.Uuid
+  roundId          String           @map("round_id") @db.Uuid
+  requestId        String           @unique(map: "uidx_transfer_batch_request_id") @map("request_id") @db.VarChar(64)
+  operatorMemberId String           @map("operator_member_id") @db.Uuid
+  itemCount        Int              @default(1) @map("item_count")
+  totalScore       Int              @map("total_score")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  room             Room             @relation(fields: [roomId], references: [id])
+  round            RoomRound        @relation(fields: [roundId], references: [id])
+  operatorMember   RoomMember       @relation("TransferBatchOperator", fields: [operatorMemberId], references: [id])
+  transfers        TransferRecord[]
+
+  @@index([roomId, createdAt], map: "idx_transfer_batch_room_created_at")
+  @@index([roundId, createdAt], map: "idx_transfer_batch_round_created_at")
+  @@map("transfer_batch")
+}
+
+model TransferRecord {
+  id              String       @id @default(uuid()) @db.Uuid
+  transferBatchId String       @map("transfer_batch_id") @db.Uuid
+  roomId          String       @map("room_id") @db.Uuid
+  roundId         String       @map("round_id") @db.Uuid
+  fromMemberId    String       @map("from_member_id") @db.Uuid
+  toMemberId      String       @map("to_member_id") @db.Uuid
+  score           Int
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  batch           TransferBatch @relation(fields: [transferBatchId], references: [id])
+  room            Room          @relation(fields: [roomId], references: [id])
+  round           RoomRound     @relation(fields: [roundId], references: [id])
+  fromMember      RoomMember    @relation("TransferFromMember", fields: [fromMemberId], references: [id])
+  toMember        RoomMember    @relation("TransferToMember", fields: [toMemberId], references: [id])
+
+  @@index([roundId, createdAt], map: "idx_transfer_record_round_created_at")
+  @@index([fromMemberId, createdAt], map: "idx_transfer_record_from_member_created_at")
+  @@index([toMemberId, createdAt], map: "idx_transfer_record_to_member_created_at")
+  @@map("transfer_record")
+}
+
+model SettlementSnapshot {
+  id                String       @id @default(uuid()) @db.Uuid
+  roomId            String       @map("room_id") @db.Uuid
+  roundId           String       @unique(map: "uidx_settlement_snapshot_round_id") @map("round_id") @db.Uuid
+  requestId         String?      @unique(map: "uidx_settlement_snapshot_request_id") @map("request_id") @db.VarChar(64)
+  settledByMemberId String       @map("settled_by_member_id") @db.Uuid
+  settledAt         DateTime     @map("settled_at") @db.Timestamptz(3)
+  rankingJson       Json         @map("ranking_json")
+  suggestionsJson   Json         @map("suggestions_json")
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  room              Room         @relation(fields: [roomId], references: [id])
+  round             RoomRound    @relation(fields: [roundId], references: [id])
+  settledByMember   RoomMember   @relation("SettlementSnapshotSettledByMember", fields: [settledByMemberId], references: [id])
+
+  @@index([roomId, settledAt], map: "idx_settlement_snapshot_room_settled_at")
+  @@map("settlement_snapshot")
+}
+
+model RoomEvent {
+  id               String      @id @default(uuid()) @db.Uuid
+  roomId           String      @map("room_id") @db.Uuid
+  roundId          String?     @map("round_id") @db.Uuid
+  operatorMemberId String?     @map("operator_member_id") @db.Uuid
+  eventType        String      @map("event_type") @db.VarChar(32)
+  requestId        String?     @map("request_id") @db.VarChar(64)
+  payloadJson      Json?       @map("payload_json")
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  room             Room        @relation(fields: [roomId], references: [id])
+  round            RoomRound?  @relation(fields: [roundId], references: [id])
+  operatorMember   RoomMember? @relation("RoomEventOperator", fields: [operatorMemberId], references: [id])
+
+  @@index([roomId, createdAt], map: "idx_room_event_room_created_at")
+  @@index([roundId, createdAt], map: "idx_room_event_round_created_at")
+  @@index([eventType, createdAt], map: "idx_room_event_type_created_at")
+  @@index([requestId], map: "idx_room_event_request_id")
+  @@map("room_event")
+}

@@ -1,378 +1,434 @@
-import { computed, ref } from 'vue'
-import { defineStore } from 'pinia'
+import { computed, ref } from "vue";
+import { defineStore } from "pinia";
 import type {
   AuthMode,
-  RoomMember,
+  AuthSession,
+  CreateRoomPayload,
+  JoinRoomPayload,
   RoomState,
   SettlementSnapshot,
   TransferDraft,
   TransferMode,
-  TransferRecord,
-  UserProfile
-} from '../types'
-import { shortCode } from '../utils/format'
-import { generateSettlementSuggestions } from '../utils/settlement'
+  UserProfile,
+} from "../types";
+import {
+  authWithGuest,
+  authWithWechat,
+  createRoomRequest,
+  createSettlementRequest,
+  createTransfersRequest,
+  getCurrentSettlementRequest,
+  getInviteInfoRequest,
+  getRoomSnapshotRequest,
+  joinRoomRequest,
+  reopenRoomRequest,
+} from "../services/apiRoomService";
+import { ApiError } from "../services/apiClient";
+import {
+  connectRoomRealtime as openRoomRealtime,
+  disconnectRoomRealtime as closeRoomRealtime,
+} from "../services/realtimeRoomService";
+import {
+  generateDefaultNickname,
+  normalizeNickname,
+  normalizeRoomCode,
+  normalizeRoomName,
+  validateRoomCode,
+} from "../utils/roomForm";
 
-const STORAGE_KEY = 'poker-score-room-state-v1'
+const STORAGE_KEY = "poker-score-room-state-v2";
+const DEVICE_ID_KEY = "poker-score-device-id";
 
 interface PersistedState {
-  profile: UserProfile | null
-  room: RoomState | null
-}
-
-function randomId(prefix: string) {
-  return `${prefix}-${Math.random().toString(36).slice(2, 10)}`
-}
-
-function createMockMember(
-  nickname: string,
-  seatLabel: string,
-  accent: string
-): RoomMember {
-  return {
-    id: randomId('member'),
-    nickname,
-    authMode: 'guest',
-    accent,
-    seatLabel,
-    score: 0,
-    isOnline: true,
-    isCurrentUser: false
-  }
-}
-
-function createProfile(nickname: string, authMode: AuthMode): UserProfile {
-  return {
-    id: randomId('user'),
-    nickname: nickname.trim() || `牌友${Math.floor(Math.random() * 900 + 100)}`,
-    authMode,
-    accent: authMode === 'wechat' ? 'jade' : 'sunset'
-  }
-}
-
-function buildInitialRoom(roomCode: string, roomName: string, profile: UserProfile): RoomState {
-  const currentMember: RoomMember = {
-    ...profile,
-    seatLabel: '东位',
-    score: 0,
-    isOnline: true,
-    isCurrentUser: true
-  }
-
-  const members: RoomMember[] = [
-    currentMember,
-    createMockMember('老周', '南位', 'amber'),
-    createMockMember('阿凯', '西位', 'ocean'),
-    createMockMember('小满', '北位', 'rose'),
-    createMockMember('七七', '庄位', 'violet')
-  ]
-
-  const roomState: RoomState = {
-    code: shortCode(roomCode),
-    name: roomName.trim() || '今夜德州局',
-    status: 'active',
-    updatedAt: new Date().toISOString(),
-    members,
-    transfers: createInitialTransfers(shortCode(roomCode), members),
-    settlement: null
-  }
-
-  recalculateRoomScores(roomState)
-
-  return roomState
-}
-
-function createInitialTransfers(roomCode: string, members: RoomMember[]): TransferRecord[] {
-  const currentMember = members.find((member) => member.isCurrentUser)
-  const zhou = members.find((member) => member.nickname === '老周')
-  const kai = members.find((member) => member.nickname === '阿凯')
-  const xiaoman = members.find((member) => member.nickname === '小满')
-  const qiqi = members.find((member) => member.nickname === '七七')
-
-  if (!currentMember || !zhou || !kai || !xiaoman || !qiqi) {
-    return []
-  }
-
-  function atDayOffset(dayOffset: number, hours: number, minutes: number) {
-    const date = new Date()
-    date.setDate(date.getDate() - dayOffset)
-    date.setHours(hours, minutes, 0, 0)
-    date.setMilliseconds(0)
-    return date.toISOString()
-  }
-
-  return [
-    {
-      id: randomId('transfer'),
-      roomCode,
-      fromMemberId: zhou.id,
-      toMemberId: currentMember.id,
-      score: 40,
-      createdAt: atDayOffset(0, 14, 32)
-    },
-    {
-      id: randomId('transfer'),
-      roomCode,
-      fromMemberId: currentMember.id,
-      toMemberId: kai.id,
-      score: 20,
-      createdAt: atDayOffset(0, 14, 15)
-    },
-    {
-      id: randomId('transfer'),
-      roomCode,
-      fromMemberId: qiqi.id,
-      toMemberId: currentMember.id,
-      score: 125,
-      createdAt: atDayOffset(1, 23, 45)
-    },
-    {
-      id: randomId('transfer'),
-      roomCode,
-      fromMemberId: currentMember.id,
-      toMemberId: xiaoman.id,
-      score: 5,
-      createdAt: atDayOffset(1, 21, 10)
-    }
-  ]
-}
-
-function normalizeMemberScores(members: RoomMember[]) {
-  return members.map((member) => ({ ...member }))
-}
-
-function recalculateRoomScores(roomState: RoomState) {
-  const memberMap = new Map(roomState.members.map((member) => [member.id, member]))
-
-  roomState.members.forEach((member) => {
-    member.score = 0
-  })
-
-  roomState.transfers.forEach((transfer) => {
-    if (transfer.score <= 0) {
-      return
-    }
-
-    const fromMember = memberMap.get(transfer.fromMemberId)
-    const toMember = memberMap.get(transfer.toMemberId)
-
-    if (!fromMember || !toMember) {
-      return
-    }
-
-    fromMember.score -= transfer.score
-    toMember.score += transfer.score
-  })
+  profile: UserProfile | null;
+  room: RoomState | null;
+  auth: AuthSession | null;
 }
 
 function saveState(payload: PersistedState) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
 
 function loadState(): PersistedState | null {
-  const raw = window.localStorage.getItem(STORAGE_KEY)
+  const raw = window.localStorage.getItem(STORAGE_KEY);
 
   if (!raw) {
-    return null
+    return null;
   }
 
   try {
-    return JSON.parse(raw) as PersistedState
+    return JSON.parse(raw) as PersistedState;
   } catch {
-    window.localStorage.removeItem(STORAGE_KEY)
-    return null
+    window.localStorage.removeItem(STORAGE_KEY);
+    return null;
   }
 }
 
-export const useRoomStore = defineStore('room', () => {
-  const profile = ref<UserProfile | null>(null)
-  const room = ref<RoomState | null>(null)
+function getOrCreateDeviceId() {
+  const stored = window.localStorage.getItem(DEVICE_ID_KEY);
+
+  if (stored) {
+    return stored;
+  }
+
+  const nextId =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `device-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+  window.localStorage.setItem(DEVICE_ID_KEY, nextId);
+  return nextId;
+}
+
+function createRequestId(prefix: string) {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `${prefix}_${crypto.randomUUID()}`;
+  }
+
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export const useRoomStore = defineStore("room", () => {
+  const profile = ref<UserProfile | null>(null);
+  const room = ref<RoomState | null>(null);
+  const auth = ref<AuthSession | null>(null);
+  const inviteLink = ref("");
+  const syncing = ref(false);
+  const realtimeConnected = ref(false);
 
   function persist() {
     saveState({
       profile: profile.value,
-      room: room.value
-    })
+      room: room.value,
+      auth: auth.value,
+    });
   }
 
   function hydrate() {
-    const persisted = loadState()
+    const persisted = loadState();
 
     if (!persisted) {
-      return
+      return;
     }
 
-    profile.value = persisted.profile
-    room.value = persisted.room
-
-    if (!room.value) {
-      return
-    }
-
-    recalculateRoomScores(room.value)
-
-    if (room.value.status === 'active') {
-      room.value.settlement = null
-      return
-    }
-
-    const ranking = normalizeMemberScores(room.value.members).sort((left, right) => right.score - left.score)
-    room.value.settlement = {
-      settledAt: room.value.settlement?.settledAt ?? room.value.updatedAt,
-      ranking,
-      suggestions: generateSettlementSuggestions(ranking)
-    }
+    profile.value = persisted.profile;
+    room.value = persisted.room ? normalizeRoomSnapshot(persisted.room) : null;
+    auth.value = persisted.auth;
   }
 
-  function ensureProfile(nickname: string, authMode: AuthMode) {
-    if (profile.value && profile.value.nickname === nickname.trim() && profile.value.authMode === authMode) {
-      return profile.value
-    }
-
-    profile.value = createProfile(nickname, authMode)
-    persist()
-    return profile.value
+  function clearState() {
+    closeRoomRealtime(room.value?.code || "");
+    profile.value = null;
+    room.value = null;
+    auth.value = null;
+    inviteLink.value = "";
+    realtimeConnected.value = false;
+    window.localStorage.removeItem(STORAGE_KEY);
   }
 
-  function createRoom(payload: { nickname: string; authMode: AuthMode; roomName: string }) {
-    const nextProfile = ensureProfile(payload.nickname, payload.authMode)
-    const roomCode = Math.floor(Math.random() * 900000 + 100000).toString()
-
-    room.value = buildInitialRoom(roomCode, payload.roomName, nextProfile)
-    persist()
-
-    return roomCode
+  function assignProfile(user: UserProfile, preferredNickname?: string) {
+    profile.value = {
+      ...user,
+      nickname: preferredNickname?.trim() ? normalizeNickname(preferredNickname) : user.nickname,
+    };
   }
 
-  function joinRoom(payload: { nickname: string; authMode: AuthMode; roomCode: string }) {
-    const nextProfile = ensureProfile(payload.nickname, payload.authMode)
-    const normalizedCode = shortCode(payload.roomCode)
+  function normalizeRoomSnapshot(nextRoom: RoomState) {
+    const fallbackMemberId =
+      room.value?.code === nextRoom.code ? room.value?.currentUserMemberId ?? null : null;
+    const currentUserMemberId = nextRoom.currentUserMemberId ?? fallbackMemberId ?? null;
 
-    if (room.value?.code === normalizedCode) {
-      const member = room.value.members.find((item) => item.isCurrentUser)
+    return {
+      ...nextRoom,
+      currentUserMemberId,
+      members: nextRoom.members.map((member) => ({
+        ...member,
+        isCurrentUser: member.id === currentUserMemberId,
+      })),
+      settlement: nextRoom.settlement
+        ? {
+            ...nextRoom.settlement,
+            ranking: nextRoom.settlement.ranking.map((member) => ({
+              ...member,
+              isCurrentUser: member.id === currentUserMemberId,
+            })),
+          }
+        : null,
+    };
+  }
 
-      if (member) {
-        member.nickname = nextProfile.nickname
-        member.authMode = nextProfile.authMode
-        member.accent = nextProfile.accent
+  function assignRoom(nextRoom: RoomState | null) {
+    room.value = nextRoom ? normalizeRoomSnapshot(nextRoom) : null;
+    persist();
+    return room.value;
+  }
+
+  async function withApiGuard<T>(runner: () => Promise<T>) {
+    syncing.value = true;
+
+    try {
+      return await runner();
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        clearState();
       }
 
-      persist()
-      return normalizedCode
+      throw error;
+    } finally {
+      syncing.value = false;
     }
-
-    room.value = buildInitialRoom(normalizedCode, `牌局 ${normalizedCode}`, nextProfile)
-    persist()
-
-    return normalizedCode
   }
 
-  function getMemberById(memberId: string) {
-    return room.value?.members.find((member) => member.id === memberId) ?? null
+  async function authenticate(
+    nickname: string,
+    authMode: AuthMode,
+    inviterRoomCode?: string,
+  ) {
+    return withApiGuard(async () => {
+      const deviceId = getOrCreateDeviceId();
+      const preferredNickname = nickname.trim() ? normalizeNickname(nickname) : "";
+      const authResponse =
+        authMode === "wechat"
+          ? await authWithWechat({
+              code: `wechat-${deviceId}`,
+              inviterRoomCode,
+            })
+          : await authWithGuest({
+              nickname: preferredNickname || undefined,
+              deviceId,
+            });
+
+      assignProfile(authResponse.user, preferredNickname);
+      auth.value = {
+        token: authResponse.token,
+        refreshToken: authResponse.refreshToken,
+        deviceId,
+      };
+      persist();
+
+      return authResponse.token;
+    });
   }
 
-  function transferScores(drafts: TransferDraft[], _mode: TransferMode) {
-    if (!room.value || room.value.status === 'settled') {
-      return false
+  async function ensureAccessToken() {
+    if (auth.value?.token) {
+      return auth.value.token;
     }
 
-    const sender = room.value.members.find((member) => member.isCurrentUser)
+    const fallbackNickname = profile.value?.nickname ?? generateDefaultNickname();
+    const fallbackAuthMode = profile.value?.authMode ?? "guest";
 
-    if (!sender) {
-      return false
-    }
-
-    const validDrafts = drafts.filter((draft) => draft.score > 0 && draft.toMemberId !== sender.id)
-
-    if (validDrafts.length === 0) {
-      return false
-    }
-
-    validDrafts.forEach((draft) => {
-      const receiver = getMemberById(draft.toMemberId)
-
-      if (!receiver) {
-        return
-      }
-
-      sender.score -= draft.score
-      receiver.score += draft.score
-
-      room.value?.transfers.unshift({
-        id: randomId('transfer'),
-        roomCode: room.value.code,
-        fromMemberId: sender.id,
-        toMemberId: receiver.id,
-        score: draft.score,
-        createdAt: new Date().toISOString()
-      })
-    })
-
-    recalculateRoomScores(room.value)
-    room.value.updatedAt = new Date().toISOString()
-    room.value.status = 'active'
-    room.value.settlement = null
-
-    persist()
-    return true
+    return authenticate(fallbackNickname, fallbackAuthMode);
   }
 
-  function settleRoom() {
+  async function refreshInviteLink(roomCode?: string) {
+    const targetRoomCode = normalizeRoomCode(roomCode || room.value?.code || "");
+
+    if (!targetRoomCode) {
+      inviteLink.value = "";
+      return "";
+    }
+
+    return withApiGuard(async () => {
+      const token = await ensureAccessToken();
+      const result = await getInviteInfoRequest(token, targetRoomCode);
+      inviteLink.value = result.inviteLink;
+      persist();
+      return result.inviteLink;
+    });
+  }
+
+  async function createRoom(payload: CreateRoomPayload) {
+    const nickname = normalizeNickname(payload.nickname);
+    const roomName = normalizeRoomName(payload.roomName, nickname);
+    const token = await authenticate(nickname, payload.authMode);
+
+    return withApiGuard(async () => {
+      const result = await createRoomRequest(token, {
+        nickname,
+        roomName,
+      });
+
+      assignRoom(result.room);
+      await refreshInviteLink(result.roomCode).catch(() => "");
+      return result.roomCode;
+    });
+  }
+
+  async function joinRoom(payload: JoinRoomPayload) {
+    const validationMessage = validateRoomCode(payload.roomCode);
+
+    if (validationMessage) {
+      throw new Error(validationMessage);
+    }
+
+    const nickname = normalizeNickname(payload.nickname);
+    const roomCode = normalizeRoomCode(payload.roomCode);
+    const token = await authenticate(nickname, payload.authMode, roomCode);
+
+    return withApiGuard(async () => {
+      const result = await joinRoomRequest(token, roomCode, {
+        nickname,
+      });
+
+      assignRoom(result.room);
+      await refreshInviteLink(result.roomCode).catch(() => "");
+      return result.roomCode;
+    });
+  }
+
+  async function fetchRoom(roomCodeValue?: string) {
+    const targetRoomCode = normalizeRoomCode(roomCodeValue || room.value?.code || "");
+
+    if (!targetRoomCode) {
+      throw new Error("房间码不能为空");
+    }
+
+    return withApiGuard(async () => {
+      const token = await ensureAccessToken();
+      const result = await getRoomSnapshotRequest(token, targetRoomCode);
+      assignRoom(result.room);
+      return result.room;
+    });
+  }
+
+  async function transferScores(drafts: TransferDraft[], _mode: TransferMode) {
+    if (!room.value || room.value.status === "settled") {
+      return false;
+    }
+
+    const validDrafts = drafts.filter((draft) => draft.score > 0);
+
+    if (!validDrafts.length) {
+      return false;
+    }
+
+    return withApiGuard(async () => {
+      const token = await ensureAccessToken();
+      const result = await createTransfersRequest(token, room.value!.code, {
+        requestId: createRequestId("transfer"),
+        expectedVersion: room.value?.version,
+        items: validDrafts,
+      });
+
+      assignRoom(result.room);
+      return true;
+    });
+  }
+
+  async function settleRoom() {
     if (!room.value) {
-      return null
+      return null;
     }
 
-    if (room.value.status === 'settled' && room.value.settlement) {
-      return room.value.settlement
-    }
+    return withApiGuard(async () => {
+      const token = await ensureAccessToken();
+      const result = await createSettlementRequest(token, room.value!.code, {
+        requestId: createRequestId("settlement"),
+        expectedVersion: room.value?.version,
+      });
 
-    recalculateRoomScores(room.value)
-
-    const ranking = normalizeMemberScores(room.value.members).sort((left, right) => right.score - left.score)
-    const snapshot: SettlementSnapshot = {
-      settledAt: new Date().toISOString(),
-      ranking,
-      suggestions: generateSettlementSuggestions(ranking)
-    }
-
-    room.value.status = 'settled'
-    room.value.settlement = snapshot
-    room.value.updatedAt = snapshot.settledAt
-    persist()
-
-    return snapshot
+      assignRoom(result.room);
+      return result.settlement;
+    });
   }
 
-  function reopenRoom() {
+  async function fetchCurrentSettlement(roomCodeValue?: string) {
+    const targetRoomCode = normalizeRoomCode(roomCodeValue || room.value?.code || "");
+
+    if (!targetRoomCode) {
+      throw new Error("房间码不能为空");
+    }
+
+    return withApiGuard(async () => {
+      const token = await ensureAccessToken();
+      const result = await getCurrentSettlementRequest(token, targetRoomCode);
+      assignRoom(result.room);
+      return result.settlement as SettlementSnapshot;
+    });
+  }
+
+  async function reopenRoom() {
     if (!room.value) {
-      return
+      return;
     }
 
-    room.value.status = 'active'
-    room.value.settlement = null
-    room.value.updatedAt = new Date().toISOString()
-    persist()
+    return withApiGuard(async () => {
+      const token = await ensureAccessToken();
+      const result = await reopenRoomRequest(token, room.value!.code, {
+        requestId: createRequestId("reopen"),
+        expectedVersion: room.value?.version,
+      });
+
+      assignRoom(result.room);
+      return result.room;
+    });
   }
 
-  const currentUser = computed(() => room.value?.members.find((member) => member.isCurrentUser) ?? null)
+  async function connectRoomRealtime(roomCodeValue?: string) {
+    const targetRoomCode = normalizeRoomCode(roomCodeValue || room.value?.code || "");
+
+    if (!targetRoomCode) {
+      return;
+    }
+
+    const token = await ensureAccessToken();
+
+    openRoomRealtime(
+      targetRoomCode,
+      {
+        onRoomSnapshot: (nextRoom) => {
+          if (normalizeRoomCode(nextRoom.code) !== targetRoomCode) {
+            return;
+          }
+
+          assignRoom(nextRoom);
+        },
+        onDisconnected: () => {
+          realtimeConnected.value = false;
+        },
+      },
+      token,
+    );
+
+    realtimeConnected.value = true;
+  }
+
+  function disconnectRoomRealtime(roomCodeValue?: string) {
+    closeRoomRealtime(roomCodeValue || room.value?.code || "");
+    realtimeConnected.value = false;
+  }
+
+  const currentUser = computed(
+    () => room.value?.members.find((member) => member.isCurrentUser) ?? null,
+  );
   const ranking = computed(() =>
-    room.value ? [...room.value.members].sort((left, right) => right.score - left.score) : []
-  )
-  const totalTransfers = computed(() => room.value?.transfers.length ?? 0)
+    room.value ? [...room.value.members].sort((left, right) => right.score - left.score) : [],
+  );
+  const totalTransfers = computed(() => room.value?.transfers.length ?? 0);
 
   return {
     profile,
     room,
+    auth,
+    inviteLink,
+    syncing,
+    realtimeConnected,
     currentUser,
     ranking,
     totalTransfers,
     hydrate,
-    ensureProfile,
+    clearState,
+    authenticate,
     createRoom,
     joinRoom,
+    fetchRoom,
+    refreshInviteLink,
     transferScores,
     settleRoom,
+    fetchCurrentSettlement,
     reopenRoom,
-    getMemberById
-  }
-})
+    connectRoomRealtime,
+    disconnectRoomRealtime,
+  };
+});
