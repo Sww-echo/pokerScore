@@ -11,35 +11,35 @@ export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
   @Post()
-  createRoom(
+  async createRoom(
     @CurrentUser() currentUser: AuthenticatedUser,
     @Body() payload: CreateRoomDto
   ) {
-    return ok(this.roomService.createRoom(currentUser, payload))
+    return ok(await this.roomService.createRoom(currentUser, payload))
   }
 
   @Get(':roomCode')
-  getRoom(
+  async getRoom(
     @CurrentUser() currentUser: AuthenticatedUser,
     @Param('roomCode') roomCode: string
   ) {
-    return ok(this.roomService.getRoomSnapshot(currentUser, roomCode))
+    return ok(await this.roomService.getRoomSnapshot(currentUser, roomCode))
   }
 
   @Post(':roomCode/join')
-  joinRoom(
+  async joinRoom(
     @CurrentUser() currentUser: AuthenticatedUser,
     @Param('roomCode') roomCode: string,
     @Body() payload: JoinRoomDto
   ) {
-    return ok(this.roomService.joinRoom(currentUser, roomCode, payload))
+    return ok(await this.roomService.joinRoom(currentUser, roomCode, payload))
   }
 
   @Get(':roomCode/invite')
-  getInvite(
+  async getInvite(
     @CurrentUser() currentUser: AuthenticatedUser,
     @Param('roomCode') roomCode: string
   ) {
-    return ok(this.roomService.getInviteInfo(currentUser, roomCode))
+    return ok(await this.roomService.getInviteInfo(currentUser, roomCode))
   }
 }

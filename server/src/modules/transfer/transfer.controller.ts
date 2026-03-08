@@ -10,11 +10,11 @@ export class TransferController {
   constructor(private readonly transferService: TransferService) {}
 
   @Post()
-  createTransfers(
+  async createTransfers(
     @CurrentUser() currentUser: AuthenticatedUser,
     @Param('roomCode') roomCode: string,
     @Body() payload: CreateTransfersDto
   ) {
-    return ok(this.transferService.createTransfers(currentUser, roomCode, payload))
+    return ok(await this.transferService.createTransfers(currentUser, roomCode, payload))
   }
 }

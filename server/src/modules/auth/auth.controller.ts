@@ -11,13 +11,13 @@ export class AuthController {
 
   @Public()
   @Post('guest')
-  guestAuth(@Body() payload: GuestAuthDto) {
-    return ok(this.authService.guestAuth(payload))
+  async guestAuth(@Body() payload: GuestAuthDto) {
+    return ok(await this.authService.guestAuth(payload))
   }
 
   @Public()
   @Post('wechat/login')
-  wechatAuth(@Body() payload: WechatLoginDto) {
-    return ok(this.authService.wechatAuth(payload))
+  async wechatAuth(@Body() payload: WechatLoginDto) {
+    return ok(await this.authService.wechatAuth(payload))
   }
 }

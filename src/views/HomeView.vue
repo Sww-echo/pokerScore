@@ -360,10 +360,10 @@ async function handleScannedPayload(payload: string) {
     </main>
 
     <footer
-      class="shrink-0 px-6 pb-12 pt-4 relative z-10 w-full max-w-sm mx-auto"
+      class="shrink-0 px-4 pb-6 pt-3 relative z-10 w-full max-w-sm mx-auto"
     >
-      <div class="flex flex-col items-center space-y-6 w-full">
-        <div class="flex items-center w-full gap-4">
+      <div class="flex flex-col items-center gap-3 w-full">
+        <div class="flex items-center w-full gap-3">
           <div
             class="h-[1px] flex-1 bg-gradient-to-r from-transparent to-slate-200"
           ></div>
@@ -376,55 +376,65 @@ async function handleScannedPayload(payload: string) {
           ></div>
         </div>
 
-        <div class="flex gap-10">
+        <div class="grid w-full grid-cols-2 gap-3">
           <button
             @click="authMode = 'wechat'"
-            class="flex flex-col items-center gap-2 group outline-none"
+            class="flex items-center gap-3 rounded-2xl border bg-white px-3 py-3 shadow-sm transition-all outline-none"
+            :class="
+              authMode === 'wechat'
+                ? 'border-primary ring-2 ring-primary/15'
+                : 'border-slate-100 hover:border-primary/40'
+            "
           >
             <div
-              class="flex size-14 items-center justify-center rounded-2xl bg-white shadow-sm border transition-all"
-              :class="
-                authMode === 'wechat'
-                  ? 'border-primary ring-2 ring-primary/20 scale-105'
-                  : 'border-slate-100 group-hover:border-primary/50'
-              "
+              class="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-slate-50 transition-colors"
+              :class="authMode === 'wechat' ? 'border-primary/30 bg-primary/10' : 'border-slate-100'"
             >
-              <span class="material-symbols-outlined text-[#07C160] text-3xl"
+              <span class="material-symbols-outlined text-[#07C160] text-[24px]"
                 >chat_bubble</span
               >
             </div>
-            <span
-              class="text-xs font-bold tracking-wide"
-              :class="
-                authMode === 'wechat' ? 'text-slate-900' : 'text-slate-400'
-              "
-              >微信登录</span
-            >
+            <div class="min-w-0 text-left">
+              <p
+                class="text-sm font-bold tracking-wide"
+                :class="
+                  authMode === 'wechat' ? 'text-slate-900' : 'text-slate-500'
+                "
+              >
+                微信登录
+              </p>
+              <p class="text-[10px] font-medium text-slate-400">默认方式</p>
+            </div>
           </button>
           <button
             @click="authMode = 'guest'"
-            class="flex flex-col items-center gap-2 group outline-none"
+            class="flex items-center gap-3 rounded-2xl border bg-white px-3 py-3 shadow-sm transition-all outline-none"
+            :class="
+              authMode === 'guest'
+                ? 'border-primary ring-2 ring-primary/15'
+                : 'border-slate-100 hover:border-primary/40'
+            "
           >
             <div
-              class="flex size-14 items-center justify-center rounded-2xl bg-white shadow-sm border transition-all"
-              :class="
-                authMode === 'guest'
-                  ? 'border-primary ring-2 ring-primary/20 scale-105'
-                  : 'border-slate-100 group-hover:border-primary/50'
-              "
+              class="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-slate-50 transition-colors"
+              :class="authMode === 'guest' ? 'border-primary/30 bg-primary/10' : 'border-slate-100'"
             >
               <span
-                class="material-symbols-outlined text-slate-400 group-hover:text-slate-600 text-3xl"
+                class="material-symbols-outlined text-slate-400 text-[24px]"
                 >person</span
               >
             </div>
-            <span
-              class="text-xs font-bold tracking-wide"
-              :class="
-                authMode === 'guest' ? 'text-slate-900' : 'text-slate-400'
-              "
-              >游客登录</span
-            >
+            <div class="min-w-0 text-left">
+              <p
+                class="text-sm font-bold tracking-wide"
+                :class="
+                  authMode === 'guest' ? 'text-slate-900' : 'text-slate-500'
+                "
+              >
+                游客登录
+              </p>
+              <p class="text-[10px] font-medium text-slate-400">快速进入</p>
+            </div>
           </button>
         </div>
       </div>

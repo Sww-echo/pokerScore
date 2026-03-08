@@ -11,28 +11,28 @@ export class SettlementController {
   constructor(private readonly settlementService: SettlementService) {}
 
   @Post('settlements')
-  createSettlement(
+  async createSettlement(
     @CurrentUser() currentUser: AuthenticatedUser,
     @Param('roomCode') roomCode: string,
     @Body() payload: CreateSettlementDto
   ) {
-    return ok(this.settlementService.createSettlement(currentUser, roomCode, payload))
+    return ok(await this.settlementService.createSettlement(currentUser, roomCode, payload))
   }
 
   @Get('settlements/current')
-  getCurrentSettlement(
+  async getCurrentSettlement(
     @CurrentUser() currentUser: AuthenticatedUser,
     @Param('roomCode') roomCode: string
   ) {
-    return ok(this.settlementService.getCurrentSettlement(currentUser, roomCode))
+    return ok(await this.settlementService.getCurrentSettlement(currentUser, roomCode))
   }
 
   @Post('reopen')
-  reopenRoom(
+  async reopenRoom(
     @CurrentUser() currentUser: AuthenticatedUser,
     @Param('roomCode') roomCode: string,
     @Body() payload: ReopenRoomDto
   ) {
-    return ok(this.settlementService.reopenRoom(currentUser, roomCode, payload))
+    return ok(await this.settlementService.reopenRoom(currentUser, roomCode, payload))
   }
 }
