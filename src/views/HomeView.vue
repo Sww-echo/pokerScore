@@ -21,9 +21,7 @@ const isScannerOpen = ref(false);
 const roomNameInput = ref("");
 const roomCodeInput = ref("");
 const nicknameInput = ref(roomStore.profile?.nickname ?? "");
-const authMode = ref<"wechat" | "guest">(
-  roomStore.profile?.authMode ?? "wechat"
-);
+const authMode = ref<"wechat" | "guest">("guest");
 const joinError = ref("");
 const scannerError = ref("");
 const isSubmitting = ref(false);
@@ -220,28 +218,32 @@ async function handleScannedPayload(payload: string) {
   >
     <header class="shrink-0 flex items-center justify-between p-4 pt-safe z-50 bg-transparent">
       <div class="flex size-10 items-center justify-center">
+        <!--
         <button
           class="flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors"
         >
           <span class="material-symbols-outlined text-slate-900 text-2xl">menu</span>
         </button>
+        -->
       </div>
       <div class="flex-1 text-center">
         <span class="text-xs font-black tracking-[0.2em] uppercase text-slate-400">PokerScore H5</span>
       </div>
       <div class="flex size-10 items-center justify-end">
+        <!--
         <button
           class="flex items-center justify-center size-8 rounded-full bg-primary/20 text-primary border border-primary/30 shadow-sm"
         >
           <span class="material-symbols-outlined text-lg">account_circle</span>
         </button>
+        -->
       </div>
     </header>
 
     <main
-      class="flex-1 overflow-y-auto flex flex-col items-center justify-center px-6 py-6 max-w-md mx-auto w-full"
+      class="flex-1 overflow-y-auto flex flex-col items-center justify-start px-6 pb-6 pt-4 max-w-md mx-auto w-full"
     >
-      <div class="mb-12 flex flex-col items-center">
+      <div class="mb-10 mt-2 flex flex-col items-center">
         <div class="relative mb-7">
           <div class="absolute -inset-4 rounded-full bg-primary/20 blur-xl"></div>
           <div
@@ -253,6 +255,20 @@ async function handleScannedPayload(payload: string) {
         <h1 class="text-slate-900 text-5xl font-black tracking-tight mb-3">PokerScore</h1>
         <div class="h-1.5 w-12 bg-primary rounded-full mb-5 shadow-sm"></div>
         <p class="text-slate-500 text-sm font-bold tracking-[0.3em] uppercase">扑克计分</p>
+        <p
+          class="mt-5 max-w-[18rem] text-center text-[12px] font-medium leading-6 text-slate-500"
+        >创建房间后分享链接、扫码或输入房间码，牌友即可直接加入。</p>
+        <div class="mt-4 flex flex-wrap justify-center gap-2">
+          <span
+            class="inline-flex items-center rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 shadow-sm"
+          >默认游客模式</span>
+          <span
+            class="inline-flex items-center rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 shadow-sm"
+          >房间码加入</span>
+          <span
+            class="inline-flex items-center rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-[11px] font-bold text-slate-500 shadow-sm"
+          >实时同步</span>
+        </div>
       </div>
 
       <div class="w-full space-y-4 px-4">
@@ -276,9 +292,6 @@ async function handleScannedPayload(payload: string) {
             输入房间码
           </button>
         </div>
-        <p
-          class="px-1 text-center text-[11px] font-medium text-slate-500"
-        >牌友可通过邀请链接直接打开房间，也可扫码识别二维码进入</p>
       </div>
     </main>
 
@@ -294,28 +307,17 @@ async function handleScannedPayload(payload: string) {
 
         <div class="grid w-full grid-cols-2 gap-3">
           <button
-            @click="authMode = 'wechat'"
-            class="flex items-center gap-3 rounded-2xl border bg-white px-3 py-3 shadow-sm transition-all outline-none"
-            :class="
-              authMode === 'wechat'
-                ? 'border-primary ring-2 ring-primary/15'
-                : 'border-slate-100 hover:border-primary/40'
-            "
+            disabled
+            class="flex items-center gap-3 rounded-2xl border bg-slate-50 px-3 py-3 shadow-sm outline-none opacity-55 grayscale cursor-not-allowed"
           >
             <div
-              class="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-slate-50 transition-colors"
-              :class="authMode === 'wechat' ? 'border-primary/30 bg-primary/10' : 'border-slate-100'"
+              class="flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white/70 transition-colors"
             >
               <span class="material-symbols-outlined text-[#07C160] text-[24px]">chat_bubble</span>
             </div>
             <div class="min-w-0 text-left">
-              <p
-                class="text-sm font-bold tracking-wide"
-                :class="
-                  authMode === 'wechat' ? 'text-slate-900' : 'text-slate-500'
-                "
-              >微信登录</p>
-              <p class="text-[10px] font-medium text-slate-400">默认方式</p>
+              <p class="text-sm font-bold tracking-wide text-slate-500">微信登录</p>
+              <p class="text-[10px] font-medium text-slate-400">暂未接入</p>
             </div>
           </button>
           <button
@@ -340,7 +342,7 @@ async function handleScannedPayload(payload: string) {
                   authMode === 'guest' ? 'text-slate-900' : 'text-slate-500'
                 "
               >游客登录</p>
-              <p class="text-[10px] font-medium text-slate-400">快速进入</p>
+              <p class="text-[10px] font-medium text-slate-400">默认方式</p>
             </div>
           </button>
         </div>
@@ -373,9 +375,7 @@ async function handleScannedPayload(payload: string) {
               <span class="material-symbols-outlined text-primary text-[28px]">add_home</span>
             </div>
             <h3 class="text-xl font-bold text-slate-900">创建新牌局</h3>
-            <p class="mt-1 text-sm text-slate-500 font-medium text-center">
-              先输入昵称和房间名，再进入你的专属牌桌
-            </p>
+            <p class="mt-1 text-sm text-slate-500 font-medium text-center">先输入昵称和房间名，再进入你的专属牌桌</p>
           </div>
 
           <div class="space-y-4 mb-8">
@@ -388,17 +388,13 @@ async function handleScannedPayload(payload: string) {
                 <button
                   @click="assignDefaultNickname"
                   class="shrink-0 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-slate-900"
-                >
-                  随机昵称
-                </button>
+                >随机昵称</button>
               </div>
 
               <div class="relative group">
                 <span
                   class="material-symbols-outlined text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors"
-                >
-                  badge
-                </span>
+                >badge</span>
                 <input
                   v-model.trim="nicknameInput"
                   class="w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 font-bold outline-none transition-colors focus:border-primary placeholder:text-slate-300"
@@ -419,17 +415,13 @@ async function handleScannedPayload(payload: string) {
                 </div>
                 <span
                   class="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-bold text-slate-500"
-                >
-                  可选
-                </span>
+                >可选</span>
               </div>
 
               <div class="relative group">
                 <span
                   class="material-symbols-outlined text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors"
-                >
-                  meeting_room
-                </span>
+                >meeting_room</span>
                 <input
                   v-model.trim="roomNameInput"
                   class="w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 font-bold outline-none transition-colors focus:border-primary placeholder:text-slate-300"
@@ -495,17 +487,13 @@ async function handleScannedPayload(payload: string) {
                 <button
                   @click="assignDefaultNickname"
                   class="shrink-0 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-slate-900"
-                >
-                  随机昵称
-                </button>
+                >随机昵称</button>
               </div>
 
               <div class="relative group">
                 <span
                   class="material-symbols-outlined text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors"
-                >
-                  badge
-                </span>
+                >badge</span>
                 <input
                   v-model.trim="nicknameInput"
                   class="w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 font-bold outline-none transition-colors focus:border-primary placeholder:text-slate-300"
