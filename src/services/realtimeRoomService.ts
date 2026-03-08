@@ -1,5 +1,6 @@
 import { io, type Socket } from "socket.io-client";
 import type { RoomState } from "../types";
+import { buildAppPath, normalizeUrlOrPath } from "../utils/appBase";
 
 type RoomEventPayload = {
   room?: RoomState;
@@ -23,6 +24,13 @@ function resolveSocketUrl() {
   return window.location.origin;
 }
 
+function resolveSocketPath() {
+  return normalizeUrlOrPath(
+    import.meta.env.VITE_WS_PATH,
+    buildAppPath("socket.io"),
+  );
+}
+
 export function connectRoomRealtime(
   roomCode: string,
   handlers: RoomRealtimeHandlers,
@@ -37,6 +45,7 @@ export function connectRoomRealtime(
   if (!socket) {
     socket = io(`${resolveSocketUrl()}/ws`, {
       autoConnect: false,
+      path: resolveSocketPath(),
       transports: ["websocket"],
       auth: token
         ? {

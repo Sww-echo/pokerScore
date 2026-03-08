@@ -1,13 +1,14 @@
 import { normalizeRoomCode } from './roomForm'
+import { buildAppUrl } from './appBase'
 
 export function buildRoomInviteLink(roomCode: string, origin = window.location.origin) {
   const normalizedCode = normalizeRoomCode(roomCode)
 
   if (!normalizedCode) {
-    return origin
+    return buildAppUrl('', origin)
   }
 
-  return `${origin.replace(/\/$/, '')}/room/${encodeURIComponent(normalizedCode)}`
+  return buildAppUrl(`room/${encodeURIComponent(normalizedCode)}`, origin)
 }
 
 export function extractRoomCodeFromInvitePayload(payload: string) {

@@ -16,6 +16,12 @@
 - `https://agentsww.com/api/v1`：后端 API
 - `https://agentsww.com/socket.io/`：Socket.IO 握手路径
 
+如果根域名已经有别的站点在跑，推荐把 PokerScore 挂到子路径：
+
+- `https://agentsww.com/poker/`：前端 H5
+- `https://agentsww.com/poker/api/v1`：后端 API
+- `https://agentsww.com/poker/socket.io/`：Socket.IO 握手路径
+
 补充说明：
 
 - `HTTP` 可以临时联调使用
@@ -83,20 +89,27 @@
 生产建议：
 
 ```env
-VITE_API_BASE_URL=/api/v1
+VITE_APP_BASE_PATH=/poker/
+VITE_API_BASE_URL=/poker/api/v1
 VITE_WS_BASE_URL=https://agentsww.com
+VITE_WS_PATH=/poker/socket.io
 ```
 
 如果还没申请证书，只是先临时联调，可以先写成：
 
 ```env
+VITE_APP_BASE_PATH=/poker/
+VITE_API_BASE_URL=/poker/api/v1
 VITE_WS_BASE_URL=http://agentsww.com
+VITE_WS_PATH=/poker/socket.io
 ```
 
 说明：
 
-- `VITE_API_BASE_URL=/api/v1` 代表前端通过同域 Nginx 反代访问后端
-- `VITE_WS_BASE_URL` 建议写正式域名，前端 Socket 会自动连到 `/ws` 命名空间
+- `VITE_APP_BASE_PATH=/poker/` 用于让前端静态资源和路由都挂在 `/poker`
+- `VITE_API_BASE_URL=/poker/api/v1` 代表前端通过同域 Nginx 反代访问子路径 API
+- `VITE_WS_BASE_URL` 建议只写协议加域名
+- `VITE_WS_PATH=/poker/socket.io` 用于把 Socket.IO 握手也放到子路径
 
 ### 4.2 后端环境变量
 
@@ -107,10 +120,10 @@ VITE_WS_BASE_URL=http://agentsww.com
 生产建议：
 
 ```env
-PORT=3000
+PORT=3001
 JWT_SECRET=replace-with-a-strong-secret
 JWT_EXPIRES_IN=7d
-APP_H5_BASE_URL=https://agentsww.com
+APP_H5_BASE_URL=https://agentsww.com/poker
 DATABASE_URL=postgresql://postgres:password@127.0.0.1:5432/pokerscore
 REDIS_URL=redis://127.0.0.1:6379
 ROOM_CODE_LENGTH=6
@@ -119,7 +132,7 @@ ROOM_CODE_LENGTH=6
 如果现在先跑 `HTTP`，则同步改成：
 
 ```env
-APP_H5_BASE_URL=http://agentsww.com
+APP_H5_BASE_URL=http://agentsww.com/poker
 ```
 
 说明：
@@ -358,7 +371,7 @@ sudo certbot --nginx -d agentsww.com
 优先检查：
 
 - 后端 PM2 是否在线
-- `PORT=3000` 是否与 Nginx upstream 一致
+- `PORT=3001` 是否与 Nginx upstream 一致
 - 后端 `.env` 是否存在
 
 ### 11.3 Prisma 连不上数据库

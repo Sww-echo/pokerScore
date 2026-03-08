@@ -941,7 +941,7 @@ V1 不做：
 ## 17.3 环境变量建议
 
 ```env
-PORT=3000
+PORT=3001
 APP_ENV=prod
 JWT_SECRET=xxx
 JWT_EXPIRES_IN=7d

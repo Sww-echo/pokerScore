@@ -22,7 +22,7 @@ sudo apt update && sudo apt upgrade -y
 ### 1.2 安装基础软件
 
 ```bash
-sudo apt install -y curl git nginx unzip build-essential
+sudo apt install -y curl git nginx unzip build-essential nano
 ```
 
 ### 1.3 安装 Node.js 24
@@ -153,15 +153,19 @@ cp .env.production.example .env.production
 确认内容为：
 
 ```env
-VITE_API_BASE_URL=/api/v1
+VITE_APP_BASE_PATH=/poker/
+VITE_API_BASE_URL=/poker/api/v1
 VITE_WS_BASE_URL=https://agentsww.com
+VITE_WS_PATH=/poker/socket.io
 ```
 
 如果你还没申请证书，只是先临时通过 `HTTP` 跑通，可以先改成：
 
 ```env
-VITE_API_BASE_URL=/api/v1
+VITE_APP_BASE_PATH=/poker/
+VITE_API_BASE_URL=/poker/api/v1
 VITE_WS_BASE_URL=http://agentsww.com
+VITE_WS_PATH=/poker/socket.io
 ```
 
 ### 6.2 后端生产环境变量
@@ -180,10 +184,10 @@ nano /srv/pokerscore/current/server/.env
 建议填写为：
 
 ```env
-PORT=3000
+PORT=3001
 JWT_SECRET=请替换成至少32位随机字符串
 JWT_EXPIRES_IN=7d
-APP_H5_BASE_URL=https://agentsww.com
+APP_H5_BASE_URL=https://agentsww.com/poker
 DATABASE_URL=postgresql://pokerscore:你的数据库密码@127.0.0.1:5432/pokerscore
 REDIS_URL=redis://127.0.0.1:6379
 ROOM_CODE_LENGTH=6
@@ -192,7 +196,7 @@ ROOM_CODE_LENGTH=6
 如果你当前还没上 HTTPS，只是先做联调，可以临时改成：
 
 ```env
-APP_H5_BASE_URL=http://agentsww.com
+APP_H5_BASE_URL=http://agentsww.com/poker
 ```
 
 ## 7. 初始化数据库表
@@ -212,6 +216,36 @@ cd /srv/pokerscore/current
 npm run server:prisma:generate
 ```
 
+如果后端启动日志出现：
+
+```text
+@prisma/client did not initialize yet. Please run "prisma generate"
+```
+
+按下面顺序补救：
+
+```bash
+pm2 stop pokerscore-server
+cd /srv/pokerscore/current/server
+npm uninstall @prisma/client
+npx prisma generate --schema ../prisma/schema.prisma
+npm run build
+pm2 restart pokerscore-server --update-env
+```
+
+再执行：
+
+```bash
+ss -lntp | grep :3001
+curl -i http://127.0.0.1:3001/api/v1/health
+```
+
+补充说明：
+
+- 当前项目的 `schema.prisma` 在仓库根目录 `prisma/`
+- 生成的 Prisma Client 默认在根目录 `node_modules/@prisma/client`
+- 如果 `server/node_modules` 里也装了一份 `@prisma/client`，会覆盖正确的生成结果，导致你看到 `AuthType`、`RoomGetPayload` 等类型缺失
+
 ## 9. 构建项目
 
 ### 9.1 构建前端
@@ -230,25 +264,19 @@ npm run build
 
 ## 10. 配置 PM2 启动后端
 
-先复制示例配置：
-
-```bash
-cp /srv/pokerscore/current/deploy/pm2/pokerscore-server.ecosystem.config.cjs /srv/pokerscore/current/deploy/pm2/pokerscore-server.ecosystem.config.local.cjs
-```
-
-如果需要，编辑：
-
-```bash
-nano /srv/pokerscore/current/deploy/pm2/pokerscore-server.ecosystem.config.local.cjs
-```
-
 启动：
 
 ```bash
 cd /srv/pokerscore/current/server
-pm2 start /srv/pokerscore/current/deploy/pm2/pokerscore-server.ecosystem.config.local.cjs
+pm2 start dist/main.js --name pokerscore-server --cwd /srv/pokerscore/current/server
 pm2 save
 pm2 startup
+```
+
+如果你之前误执行过把 `ecosystem.config.local.cjs` 本身作为脚本启动的命令，先删除错误进程：
+
+```bash
+pm2 delete pokerscore-server.ecosystem.config.local
 ```
 
 查看状态：
@@ -293,8 +321,74 @@ sudo nginx -t
 重载 Nginx：
 
 ```bash
-sudo systemctl reload nginx
+sudo systemctl enable nginx
+sudo systemctl restart nginx
 ```
+
+如果这里失败，再执行：
+
+```bash
+sudo journalctl -u nginx -n 50 --no-pager
+ss -lntp | grep :80
+```
+
+如果你的服务器是宝塔 / aaPanel 环境，还要额外检查：
+
+- 站点配置是否实际由 `/www/server/panel/vhost/nginx/*.conf` 接管
+- 同一个域名是否同时存在宝塔站点配置和 `/etc/nginx/sites-enabled/` 配置
+- 实际运行的 `nginx` 可能是宝塔自己的安装目录，不一定是系统 `/etc/nginx`
+
+可直接执行：
+
+```bash
+which nginx
+nginx -V 2>&1 | head -n 5
+ps -ef | grep nginx
+ls -lah /www/server/panel/vhost/nginx
+sudo grep -RniE "server_name .*agentsww.com|NEXT_LOCALE|/en|proxy_pass" /www/server/panel/vhost/nginx 2>/dev/null
+```
+
+如果发现 `/www/server/panel/vhost/nginx/agentsww.com.conf` 还在跑旧站点，优先修改这份配置，而不是继续改 `/etc/nginx/sites-enabled/`
+
+如果你不想替换根站点，只想新增 `https://agentsww.com/poker/`，直接把下面这些 `location` 放进
+`/www/server/panel/vhost/nginx/agentsww.com.conf` 当前生效的 `server {}` 里：
+
+```nginx
+location = /poker {
+    return 301 /poker/;
+}
+
+location ^~ /poker/api/v1/ {
+    proxy_pass http://127.0.0.1:3001/api/v1/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+location ^~ /poker/socket.io/ {
+    proxy_pass http://127.0.0.1:3001/socket.io/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 600s;
+}
+
+location ^~ /poker/ {
+    alias /srv/pokerscore/current/dist/;
+    index index.html;
+    try_files $uri $uri/ /poker/index.html;
+}
+```
+
+也可以直接参考：
+
+- [deploy/nginx/pokerscore.subpath.conf.example](/C:/Users/sww/Desktop/project/pokerScore/deploy/nginx/pokerscore.subpath.conf.example)
 
 ## 12. 先用 HTTP 跑通
 
@@ -307,8 +401,25 @@ http://agentsww.com
 再检查接口：
 
 ```bash
-curl http://agentsww.com/api/v1/health
+curl http://agentsww.com/poker/api/v1/health
 ```
+
+本机排查时，建议补充执行：
+
+```bash
+curl -I -H "Host: agentsww.com" http://127.0.0.1
+curl -i -H "Host: agentsww.com" http://127.0.0.1/poker/api/v1/health
+curl -i http://127.0.0.1:3001/api/v1/health
+ss -lntp | grep :3001
+pm2 status
+```
+
+判断要点：
+
+- `curl http://127.0.0.1` 如果看到的是默认 Nginx 页面，不能说明站点已配置成功
+- 只有带 `Host: agentsww.com` 的请求命中了你的站点，才算 `server_name` 生效
+- 当前项目的健康接口应该返回 JSON
+- 如果 `3001` 端口返回的不是 JSON，而是类似 `/en/api/v1/health`，说明 `3001` 已被别的服务占用
 
 如果这里不通，不要急着申请证书，先把下面几项排通：
 
@@ -329,7 +440,7 @@ sudo certbot --nginx -d agentsww.com
 
 ```bash
 curl -I https://agentsww.com
-curl https://agentsww.com/api/v1/health
+curl https://agentsww.com/poker/api/v1/health
 ```
 
 如果你的健康接口路径不是这个，也可以直接用浏览器打开首页确认。
@@ -352,10 +463,11 @@ sudo certbot renew --dry-run
 如果你前面为了先跑通 `HTTP`，把环境变量临时写成了 `http://agentsww.com`，这里还要补一步：
 
 1. 把 `/srv/pokerscore/current/.env.production` 里的 `VITE_WS_BASE_URL` 改回 `https://agentsww.com`
-2. 把 `/srv/pokerscore/current/server/.env` 里的 `APP_H5_BASE_URL` 改回 `https://agentsww.com`
-3. 在项目根目录重新执行 `npm run build`
-4. 执行 `pm2 restart pokerscore-server`
-5. 执行 `sudo systemctl reload nginx`
+2. 确认 `/srv/pokerscore/current/.env.production` 里的 `VITE_APP_BASE_PATH=/poker/` 和 `VITE_WS_PATH=/poker/socket.io` 没被改丢
+3. 把 `/srv/pokerscore/current/server/.env` 里的 `APP_H5_BASE_URL` 改回 `https://agentsww.com/poker`
+4. 在项目根目录重新执行 `npm run build`
+5. 执行 `pm2 restart pokerscore-server`
+6. 执行 `sudo systemctl reload nginx`
 
 ## 15. 上线后的验证顺序
 
@@ -364,13 +476,13 @@ sudo certbot renew --dry-run
 浏览器打开：
 
 ```text
-https://agentsww.com
+https://agentsww.com/poker/
 ```
 
 ### 15.2 验证后端健康状态
 
 ```bash
-curl https://agentsww.com/api/v1/health
+curl https://agentsww.com/poker/api/v1/health
 ```
 
 ### 15.3 验证完整业务
@@ -435,10 +547,10 @@ sudo tail -f /var/log/nginx/error.log
 sudo tail -f /var/log/nginx/access.log
 ```
 
-### 检查 3000 端口是否监听
+### 检查 3001 端口是否监听
 
 ```bash
-ss -lntp | grep 3000
+ss -lntp | grep 3001
 ```
 
 ### 检查 PostgreSQL 是否启动

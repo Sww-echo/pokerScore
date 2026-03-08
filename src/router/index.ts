@@ -5,7 +5,7 @@ import SettlementView from '../views/SettlementView.vue'
 import HistoryView from '../views/HistoryView.vue'
 
 export const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',

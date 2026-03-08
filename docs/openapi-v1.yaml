@@ -16,7 +16,7 @@ info:
     - 实时广播能力通过 Socket.IO 提供，不在本 OpenAPI 范围内
     - 响应中的字段命名尽量对齐现有前端 `RoomState` / `RoomMember` / `TransferRecord`
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:3001
     description: Local
   - url: https://api.pokerscore.example.com
     description: Production

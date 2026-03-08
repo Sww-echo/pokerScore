@@ -1,7 +1,9 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "/api/v1").replace(
-  /\/$/,
-  "",
-);
+import { buildAppPath, normalizeUrlOrPath } from "../utils/appBase";
+
+const API_BASE_URL = normalizeUrlOrPath(
+  import.meta.env.VITE_API_BASE_URL,
+  buildAppPath("api/v1"),
+).replace(/\/$/, "");
 
 interface ApiEnvelope<T> {
   code: number;
