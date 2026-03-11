@@ -127,7 +127,7 @@ function getGradient(id: string) {
   <Transition name="fade">
     <div
       v-if="open"
-      class="fixed inset-0 z-[100] flex flex-col justify-end antialiased font-display"
+      class="fixed inset-0 z-[100] grid place-items-center overflow-y-auto px-4 pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+16px)] antialiased font-display"
     >
       <div
         class="absolute inset-0 z-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
@@ -135,7 +135,7 @@ function getGradient(id: string) {
       ></div>
 
       <div
-        class="relative z-10 flex flex-col w-full bg-white rounded-t-[2rem] shadow-2xl border-t border-slate-200 slide-up max-w-xl mx-auto h-[85vh] max-h-[800px]"
+        class="relative z-10 mx-auto flex h-[82dvh] max-h-[48rem] w-full max-w-xl flex-col overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl slide-up"
       >
         <div class="flex h-6 w-full items-center justify-center pt-3 shrink-0">
           <div class="h-1.5 w-12 rounded-full bg-slate-300"></div>

@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import QrScannerModal from "../components/QrScannerModal.vue";
 import { useRoomStore } from "../stores/room";
+import { formatIdentityKey } from "../utils/format";
 import { extractRoomCodeFromInvitePayload } from "../utils/roomInvite";
 import {
   generateDefaultNickname,
@@ -18,9 +19,11 @@ const roomStore = useRoomStore();
 const isCreateModalOpen = ref(false);
 const isJoinModalOpen = ref(false);
 const isScannerOpen = ref(false);
+const isRecoveryModalOpen = ref(false);
 const roomNameInput = ref("");
 const roomCodeInput = ref("");
 const nicknameInput = ref(roomStore.profile?.nickname ?? "");
+const recoveryIdentityInput = ref("");
 const authMode = ref<"wechat" | "guest">("guest");
 const joinError = ref("");
 const scannerError = ref("");
@@ -46,6 +49,7 @@ const roomNameHint = computed(() =>
 const normalizedRoomCode = computed(() =>
   normalizeRoomCode(roomCodeInput.value)
 );
+const identityKey = computed(() => formatIdentityKey(roomStore.profile?.id));
 
 const roomCodeHelperText = computed(() => {
   if (joinError.value) {
@@ -62,6 +66,14 @@ const roomCodeHelperText = computed(() => {
 function assignDefaultNickname() {
   fallbackNickname.value = generateDefaultNickname();
   nicknameInput.value = fallbackNickname.value;
+}
+
+function markPendingIdentityTip() {
+  if (window.localStorage.getItem("poker-score-identity-tip-dismissed") === "1") {
+    return;
+  }
+
+  window.sessionStorage.setItem("poker-score-identity-tip-pending", "1");
 }
 
 function resolveNickname() {
@@ -92,6 +104,7 @@ async function createRoom() {
       roomName,
     });
 
+    markPendingIdentityTip();
     closeCreateModal();
     await router.push({
       name: "room",
@@ -127,6 +140,7 @@ function closeJoinModal() {
 function openScanner() {
   isCreateModalOpen.value = false;
   isJoinModalOpen.value = false;
+  isRecoveryModalOpen.value = false;
   isScannerOpen.value = true;
   scannerError.value = "";
 }
@@ -134,6 +148,15 @@ function openScanner() {
 function closeScanner() {
   isScannerOpen.value = false;
   scannerError.value = "";
+}
+
+function openRecoveryModal() {
+  recoveryIdentityInput.value = "";
+  isRecoveryModalOpen.value = true;
+}
+
+function closeRecoveryModal() {
+  isRecoveryModalOpen.value = false;
 }
 
 function clearScannerError() {
@@ -164,6 +187,7 @@ async function submitJoin(roomCode: string) {
       roomCode,
     });
 
+    markPendingIdentityTip();
     closeJoinModal();
     closeScanner();
     await router.push({
@@ -209,6 +233,10 @@ async function handleScannedPayload(payload: string) {
     scannerError.value =
       error instanceof Error ? error.message : "加入房间失败";
   }
+}
+
+function submitRecoveryIdentity() {
+  window.alert("识别名恢复功能即将支持，当前版本请先保存你的专属识别名。");
 }
 </script>
 
@@ -292,6 +320,17 @@ async function handleScannedPayload(payload: string) {
             输入房间码
           </button>
         </div>
+        <button
+          type="button"
+          class="mx-auto flex items-center justify-center gap-2 text-sm font-bold text-slate-500 transition-colors hover:text-slate-700"
+          @click="openRecoveryModal"
+        >
+          <span class="material-symbols-outlined text-[18px]">key</span>
+          使用专属识别名恢复
+        </button>
+        <p class="px-2 text-center text-[11px] font-medium text-slate-400">
+          换设备后，可用专属识别名找回记录和常用房间
+        </p>
       </div>
     </main>
 
@@ -352,98 +391,106 @@ async function handleScannedPayload(payload: string) {
     <Transition name="fade">
       <div
         v-if="isCreateModalOpen"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        class="fixed inset-0 z-[100] grid place-items-center overflow-y-auto px-4 pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+16px)]"
       >
         <div
           class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
           @click.self="closeCreateModal"
         ></div>
         <div
-          class="relative w-full max-w-sm rounded-[2rem] bg-white p-6 shadow-2xl slide-up border border-slate-100"
+          class="relative flex h-[78dvh] max-h-[44rem] w-full max-w-sm flex-col overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-2xl slide-up"
         >
-          <button
-            @click="closeCreateModal"
-            class="absolute right-4 top-4 flex size-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
-          >
-            <span class="material-symbols-outlined text-slate-500 text-[18px]">close</span>
-          </button>
+          <div class="shrink-0 px-6 pb-3 pt-5">
+            <div class="flex justify-end">
+              <button
+                @click="closeCreateModal"
+                class="flex size-8 items-center justify-center rounded-full bg-slate-100 transition-colors hover:bg-slate-200"
+              >
+                <span class="material-symbols-outlined text-[18px] text-slate-500">close</span>
+              </button>
+            </div>
 
-          <div class="mb-6 flex flex-col items-center mt-2">
-            <div
-              class="flex size-14 items-center justify-center rounded-2xl bg-primary/10 mb-4 shadow-inner border border-primary/20"
+            <div class="mt-1 flex flex-col items-center">
+              <div
+                class="mb-4 flex size-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-inner"
+              >
+                <span class="material-symbols-outlined text-[28px] text-primary">add_home</span>
+              </div>
+              <h3 class="text-xl font-bold text-slate-900">创建新牌局</h3>
+              <p class="mt-1 text-center text-sm font-medium text-slate-500">先输入昵称和房间名，再进入你的专属牌桌</p>
+            </div>
+          </div>
+
+          <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-5 scrollbar-hide">
+            <div class="space-y-4">
+              <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4">
+                <div class="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-sm font-bold text-slate-900">你的昵称</p>
+                    <p class="text-[11px] font-medium text-slate-500">留空会自动使用随机昵称</p>
+                  </div>
+                  <button
+                    @click="assignDefaultNickname"
+                    class="shrink-0 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-slate-900"
+                  >随机昵称</button>
+                </div>
+
+                <div class="relative group">
+                  <span
+                    class="material-symbols-outlined text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors"
+                  >badge</span>
+                  <input
+                    v-model.trim="nicknameInput"
+                    class="w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 font-bold outline-none transition-colors focus:border-primary placeholder:text-slate-300"
+                    placeholder="请输入你的昵称"
+                    type="text"
+                    maxlength="12"
+                    @keyup.enter="createRoom"
+                  />
+                </div>
+                <p class="mt-2 text-[11px] font-medium text-slate-500">{{ nicknameHelperText }}</p>
+              </div>
+
+              <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4">
+                <div class="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-sm font-bold text-slate-900">房间名称</p>
+                    <p class="text-[11px] font-medium text-slate-500">可选，不填会自动生成</p>
+                  </div>
+                  <span
+                    class="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-bold text-slate-500"
+                  >可选</span>
+                </div>
+
+                <div class="relative group">
+                  <span
+                    class="material-symbols-outlined text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors"
+                  >meeting_room</span>
+                  <input
+                    v-model.trim="roomNameInput"
+                    class="w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 font-bold outline-none transition-colors focus:border-primary placeholder:text-slate-300"
+                    placeholder="例如：周末德州局"
+                    type="text"
+                    maxlength="18"
+                    @keyup.enter="createRoom"
+                  />
+                </div>
+                <p class="mt-2 text-[11px] font-medium text-slate-500">默认将创建「{{ roomNameHint }}」</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="shrink-0 border-t border-slate-100 px-6 pb-6 pt-4">
+            <button
+              @click="createRoom"
+              :disabled="isSubmitting"
+              class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-lg font-black text-slate-900 shadow-[0_4px_20px_rgba(249,212,6,0.2)] transition-transform active:scale-[0.98]"
+              :class="{ 'opacity-60 pointer-events-none': isSubmitting }"
             >
-              <span class="material-symbols-outlined text-primary text-[28px]">add_home</span>
-            </div>
-            <h3 class="text-xl font-bold text-slate-900">创建新牌局</h3>
-            <p class="mt-1 text-sm text-slate-500 font-medium text-center">先输入昵称和房间名，再进入你的专属牌桌</p>
+              <span>{{ isSubmitting ? "创建中..." : "确认创建" }}</span>
+              <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </button>
           </div>
-
-          <div class="space-y-4 mb-8">
-            <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4">
-              <div class="mb-3 flex items-center justify-between gap-3">
-                <div>
-                  <p class="text-sm font-bold text-slate-900">你的昵称</p>
-                  <p class="text-[11px] font-medium text-slate-500">留空会自动使用随机昵称</p>
-                </div>
-                <button
-                  @click="assignDefaultNickname"
-                  class="shrink-0 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-slate-900"
-                >随机昵称</button>
-              </div>
-
-              <div class="relative group">
-                <span
-                  class="material-symbols-outlined text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors"
-                >badge</span>
-                <input
-                  v-model.trim="nicknameInput"
-                  class="w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 font-bold outline-none transition-colors focus:border-primary placeholder:text-slate-300"
-                  placeholder="请输入你的昵称"
-                  type="text"
-                  maxlength="12"
-                  @keyup.enter="createRoom"
-                />
-              </div>
-              <p class="mt-2 text-[11px] font-medium text-slate-500">{{ nicknameHelperText }}</p>
-            </div>
-
-            <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4">
-              <div class="mb-3 flex items-center justify-between gap-3">
-                <div>
-                  <p class="text-sm font-bold text-slate-900">房间名称</p>
-                  <p class="text-[11px] font-medium text-slate-500">可选，不填会自动生成</p>
-                </div>
-                <span
-                  class="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-bold text-slate-500"
-                >可选</span>
-              </div>
-
-              <div class="relative group">
-                <span
-                  class="material-symbols-outlined text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors"
-                >meeting_room</span>
-                <input
-                  v-model.trim="roomNameInput"
-                  class="w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 font-bold outline-none transition-colors focus:border-primary placeholder:text-slate-300"
-                  placeholder="例如：周末德州局"
-                  type="text"
-                  maxlength="18"
-                  @keyup.enter="createRoom"
-                />
-              </div>
-              <p class="mt-2 text-[11px] font-medium text-slate-500">默认将创建「{{ roomNameHint }}」</p>
-            </div>
-          </div>
-
-          <button
-            @click="createRoom"
-            :disabled="isSubmitting"
-            class="w-full rounded-xl bg-primary py-4 text-slate-900 font-black text-lg active:scale-[0.98] transition-transform shadow-[0_4px_20px_rgba(249,212,6,0.2)] flex items-center justify-center gap-2"
-            :class="{ 'opacity-60 pointer-events-none': isSubmitting }"
-          >
-            <span>{{ isSubmitting ? "创建中..." : "确认创建" }}</span>
-            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-          </button>
         </div>
       </div>
     </Transition>
@@ -451,105 +498,113 @@ async function handleScannedPayload(payload: string) {
     <Transition name="fade">
       <div
         v-if="isJoinModalOpen"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        class="fixed inset-0 z-[100] grid place-items-center overflow-y-auto px-4 pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+16px)]"
       >
         <div
           class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
           @click.self="closeJoinModal"
         ></div>
         <div
-          class="relative w-full max-w-sm rounded-[2rem] bg-white p-6 shadow-2xl slide-up border border-slate-100"
+          class="relative flex h-[78dvh] max-h-[44rem] w-full max-w-sm flex-col overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-2xl slide-up"
         >
-          <button
-            @click="closeJoinModal"
-            class="absolute right-4 top-4 flex size-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
-          >
-            <span class="material-symbols-outlined text-slate-500 text-[18px]">close</span>
-          </button>
-
-          <div class="mb-6 flex flex-col items-center mt-2">
-            <div
-              class="flex size-14 items-center justify-center rounded-2xl bg-primary/10 mb-4 shadow-inner border border-primary/20"
-            >
-              <span class="material-symbols-outlined text-primary text-[28px]">meeting_room</span>
+          <div class="shrink-0 px-6 pb-3 pt-5">
+            <div class="flex justify-end">
+              <button
+                @click="closeJoinModal"
+                class="flex size-8 items-center justify-center rounded-full bg-slate-100 transition-colors hover:bg-slate-200"
+              >
+                <span class="material-symbols-outlined text-[18px] text-slate-500">close</span>
+              </button>
             </div>
-            <h3 class="text-xl font-bold text-slate-900">加入已有牌桌</h3>
-            <p class="mt-1 text-sm text-slate-500 font-medium text-center">请输入房主分享的房间码，后续也可接扫码填充</p>
+
+            <div class="mt-1 flex flex-col items-center">
+              <div
+                class="mb-4 flex size-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-inner"
+              >
+                <span class="material-symbols-outlined text-[28px] text-primary">meeting_room</span>
+              </div>
+              <h3 class="text-xl font-bold text-slate-900">加入已有牌桌</h3>
+              <p class="mt-1 text-center text-sm font-medium text-slate-500">请输入房主分享的房间码，后续也可接扫码填充</p>
+            </div>
           </div>
 
-          <div class="space-y-4 mb-8">
-            <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4">
-              <div class="mb-3 flex items-center justify-between gap-3">
-                <div>
-                  <p class="text-sm font-bold text-slate-900">你的昵称</p>
-                  <p class="text-[11px] font-medium text-slate-500">留空时仍会使用随机昵称</p>
+          <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-5 scrollbar-hide">
+            <div class="space-y-4">
+              <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4">
+                <div class="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-sm font-bold text-slate-900">你的昵称</p>
+                    <p class="text-[11px] font-medium text-slate-500">留空时仍会使用随机昵称</p>
+                  </div>
+                  <button
+                    @click="assignDefaultNickname"
+                    class="shrink-0 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-slate-900"
+                  >随机昵称</button>
                 </div>
-                <button
-                  @click="assignDefaultNickname"
-                  class="shrink-0 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-slate-900"
-                >随机昵称</button>
+
+                <div class="relative group">
+                  <span
+                    class="material-symbols-outlined text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors"
+                  >badge</span>
+                  <input
+                    v-model.trim="nicknameInput"
+                    class="w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 font-bold outline-none transition-colors focus:border-primary placeholder:text-slate-300"
+                    placeholder="请输入你的昵称"
+                    type="text"
+                    maxlength="12"
+                    @keyup.enter="joinRoom"
+                  />
+                </div>
+                <p class="mt-2 text-[11px] font-medium text-slate-500">{{ nicknameHelperText }}</p>
               </div>
 
               <div class="relative group">
                 <span
                   class="material-symbols-outlined text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors"
-                >badge</span>
+                >tag</span>
                 <input
-                  v-model.trim="nicknameInput"
-                  class="w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 font-bold outline-none transition-colors focus:border-primary placeholder:text-slate-300"
-                  placeholder="请输入你的昵称"
+                  v-model="roomCodeInput"
+                  class="w-full rounded-xl border py-4 pl-12 pr-4 text-slate-900 font-black tracking-widest outline-none transition-colors focus:bg-white placeholder:text-slate-300 placeholder:font-medium placeholder:tracking-normal"
+                  :class="
+                    joinError
+                      ? 'border-rose-300 bg-rose-50 focus:border-rose-400'
+                      : 'border-slate-200 bg-slate-50 focus:border-primary'
+                  "
+                  placeholder="请输入房间码"
                   type="text"
-                  maxlength="12"
+                  maxlength="8"
+                  autocomplete="off"
+                  @input="normalizeCodeInput"
                   @keyup.enter="joinRoom"
                 />
               </div>
-              <p class="mt-2 text-[11px] font-medium text-slate-500">{{ nicknameHelperText }}</p>
+
+              <p
+                class="text-xs font-medium"
+                :class="joinError ? 'text-rose-500' : 'text-slate-500'"
+              >{{ roomCodeHelperText }}</p>
+
+              <button
+                @click="openScanner"
+                class="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-900 transition-colors hover:bg-slate-100"
+              >
+                <span class="material-symbols-outlined text-[18px]">qr_code_scanner</span>
+                改用扫码识别
+              </button>
             </div>
-
-            <div class="relative group">
-              <span
-                class="material-symbols-outlined text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors"
-              >tag</span>
-              <input
-                v-model="roomCodeInput"
-                class="w-full rounded-xl border py-4 pl-12 pr-4 text-slate-900 font-black tracking-widest outline-none transition-colors focus:bg-white placeholder:text-slate-300 placeholder:font-medium placeholder:tracking-normal"
-                :class="
-                  joinError
-                    ? 'border-rose-300 bg-rose-50 focus:border-rose-400'
-                    : 'border-slate-200 bg-slate-50 focus:border-primary'
-                "
-                placeholder="请输入房间码"
-                type="text"
-                maxlength="8"
-                autocomplete="off"
-                @input="normalizeCodeInput"
-                @keyup.enter="joinRoom"
-              />
-            </div>
-
-            <p
-              class="text-xs font-medium"
-              :class="joinError ? 'text-rose-500' : 'text-slate-500'"
-            >{{ roomCodeHelperText }}</p>
-
-            <button
-              @click="openScanner"
-              class="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-900 transition-colors hover:bg-slate-100"
-            >
-              <span class="material-symbols-outlined text-[18px]">qr_code_scanner</span>
-              改用扫码识别
-            </button>
           </div>
 
-          <button
-            @click="joinRoom"
-            :disabled="isSubmitting"
-            class="w-full rounded-xl bg-primary py-4 text-slate-900 font-black text-lg active:scale-[0.98] transition-transform shadow-[0_4px_20px_rgba(249,212,6,0.2)] flex items-center justify-center gap-2"
-            :class="{ 'opacity-60 pointer-events-none': isSubmitting }"
-          >
-            <span>{{ isSubmitting ? "进入中..." : "进入房间" }}</span>
-            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-          </button>
+          <div class="shrink-0 border-t border-slate-100 px-6 pb-6 pt-4">
+            <button
+              @click="joinRoom"
+              :disabled="isSubmitting"
+              class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 text-lg font-black text-slate-900 shadow-[0_4px_20px_rgba(249,212,6,0.2)] transition-transform active:scale-[0.98]"
+              :class="{ 'opacity-60 pointer-events-none': isSubmitting }"
+            >
+              <span>{{ isSubmitting ? "进入中..." : "进入房间" }}</span>
+              <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </button>
+          </div>
         </div>
       </div>
     </Transition>
@@ -561,6 +616,102 @@ async function handleScannedPayload(payload: string) {
       @close="closeScanner"
       @detect="handleScannedPayload"
     />
+
+    <Transition name="fade">
+      <div
+        v-if="isRecoveryModalOpen"
+        class="fixed inset-0 z-[100] grid place-items-center overflow-y-auto px-4 pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+16px)]"
+      >
+        <div
+          class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+          @click.self="closeRecoveryModal"
+        ></div>
+        <div
+          class="relative flex h-[78dvh] max-h-[44rem] w-full max-w-sm flex-col overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-2xl slide-up"
+        >
+          <div class="shrink-0 px-6 pb-3 pt-5">
+            <div class="flex justify-end">
+              <button
+                @click="closeRecoveryModal"
+                class="flex size-8 items-center justify-center rounded-full bg-slate-100 transition-colors hover:bg-slate-200"
+              >
+                <span class="material-symbols-outlined text-[18px] text-slate-500">close</span>
+              </button>
+            </div>
+
+            <div class="mt-1 flex flex-col items-center">
+              <div
+                class="mb-4 flex size-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-inner"
+              >
+                <span class="material-symbols-outlined text-[28px] text-primary">vpn_key</span>
+              </div>
+              <h3 class="text-xl font-bold text-slate-900">使用专属识别名恢复</h3>
+              <p class="mt-1 text-center text-sm font-medium text-slate-500">
+                请输入你的专属识别名。找回后，你可以继续查看历史记录，并重新进入常用房间。
+              </p>
+            </div>
+          </div>
+
+          <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-5 scrollbar-hide">
+            <div class="space-y-4">
+              <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4">
+                <p class="text-sm font-bold text-slate-900">专属识别名</p>
+                <p class="mt-1 text-[11px] font-medium text-slate-500">
+                  例如：PKR-A1B2-C3D4
+                </p>
+                <div class="relative mt-3">
+                  <span
+                    class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  >
+                    badge
+                  </span>
+                  <input
+                    v-model.trim="recoveryIdentityInput"
+                    class="w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-slate-900 font-bold tracking-[0.12em] outline-none placeholder:text-slate-300"
+                    placeholder="请输入你的专属识别名"
+                    type="text"
+                  />
+                </div>
+              </div>
+
+              <div
+                v-if="identityKey"
+                class="rounded-[1.5rem] border border-primary/15 bg-primary/5 p-4"
+              >
+                <p class="text-sm font-bold text-slate-900">你当前的专属识别名</p>
+                <p class="mt-2 break-all text-base font-black tracking-[0.14em] text-slate-900">
+                  {{ identityKey }}
+                </p>
+                <p class="mt-2 text-[11px] font-medium text-slate-500">
+                  这串识别名相当于你的 PokerScore 用户编号，建议复制保存。
+                </p>
+              </div>
+
+              <p class="text-center text-xs font-medium text-slate-500">
+                恢复功能即将支持，当前版本请先保存你的专属识别名。
+              </p>
+            </div>
+          </div>
+
+          <div class="shrink-0 border-t border-slate-100 px-6 pb-6 pt-4">
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                @click="closeRecoveryModal"
+                class="h-12 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100"
+              >
+                取消
+              </button>
+              <button
+                @click="submitRecoveryIdentity"
+                class="h-12 rounded-xl bg-slate-900 text-sm font-bold text-white transition-transform active:scale-[0.98]"
+              >
+                即将支持
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 

@@ -22,3 +22,15 @@ export function formatScore(value: number) {
 export function shortCode(value: string) {
   return value.trim().toUpperCase()
 }
+
+export function formatIdentityKey(value?: string | null) {
+  const normalized = value?.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() ?? ''
+
+  if (!normalized) {
+    return ''
+  }
+
+  const padded = normalized.padEnd(12, '0').slice(0, 12)
+
+  return `PKR-${padded.slice(0, 4)}-${padded.slice(4, 8)}-${padded.slice(8, 12)}`
+}
